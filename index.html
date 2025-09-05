@@ -29,19 +29,45 @@
         
         <div class="mb-6 text-center">
             <h1 class="text-3xl font-bold text-gray-800">Kirim Data ke n8n</h1>
-            <p class="text-gray-500 mt-2">Masukkan URL webhook n8n Anda dan pesan yang ingin dikirim.</p>
+            <p class="text-gray-500 mt-2">Masukkan pesan yang ingin dikirim ke webhook n8n.</p>
         </div>
 
         <!-- Form untuk input data -->
         <form id="webhookForm" class="space-y-6">
             <div>
-                <label for="webhookUrl" class="block text-sm font-medium text-gray-700 mb-1">URL Webhook n8n</label>
-                <input type="url" id="webhookUrl" name="webhookUrl" class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="https://n8n.contoh.com/webhook/..." required>
+                <label class="block text-sm font-medium text-gray-700 mb-1">URL Webhook n8n</label>
+                <input type="text" class="block w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg" 
+                       value="https://n8n-ukfgpxzhkrwi.sate.sumopod.my.id/webhook/generate-slide" enabled>
+                <p class="text-xs text-gray-500 mt-1">URL webhook telah dikonfigurasi sebelumnya</p>
             </div>
 
             <div>
                 <label for="textInput" class="block text-sm font-medium text-gray-700 mb-1">Pesan Teks</label>
                 <textarea id="textInput" name="textInput" rows="4" class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Ketik pesan Anda di sini..." required></textarea>
+            </div>
+
+            <!-- Opsi penyimpanan ke Drive -->
+            <div class="border-t border-gray-200 pt-4">
+                <h3 class="text-lg font-medium text-gray-800 mb-3">Opsi Penyimpanan ke Drive</h3>
+                
+                <div class="flex items-center mb-3">
+                    <input id="saveToDrive" name="saveToDrive" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="saveToDrive" class="ml-2 block text-sm text-gray-700">Simpan hasil ke Google Drive</label>
+                </div>
+                
+                <div id="driveOptions" class="pl-6 mt-2 hidden">
+                    <div class="mb-3">
+                        <label for="driveFolder" class="block text-sm font-medium text-gray-700 mb-1">Nama Folder</label>
+                        <input type="text" id="driveFolder" name="driveFolder" class="block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Masukkan nama folder">
+                        <p class="text-xs text-gray-500 mt-1">Contoh: Laporan, Data-User, Backup</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="fileName" class="block text-sm font-medium text-gray-700 mb-1">Nama File (opsional)</label>
+                        <input type="text" id="fileName" name="fileName" class="block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Masukkan nama file">
+                        <p class="text-xs text-gray-500 mt-1">Jika kosong, akan menggunakan nama default</p>
+                    </div>
+                </div>
             </div>
 
             <div>
@@ -68,9 +94,11 @@
     </div>
 
     <script>
+        // Hardcoded webhook URL
+        const WEBHOOK_URL = "https://n8n-ukfgpxzhkrwi.sate.sumopod.my.id/webhook/generate-slide";
+
         // Mengambil elemen-elemen dari DOM
         const form = document.getElementById('webhookForm');
-        const webhookUrlInput = document.getElementById('webhookUrl');
         const textInput = document.getElementById('textInput');
         const statusMessage = document.getElementById('statusMessage');
         const submitButton = document.getElementById('submitButton');
@@ -78,6 +106,17 @@
         const buttonLoader = submitButton.querySelector('.button-loader');
         const outputArea = document.getElementById('outputArea');
         const outputContent = document.getElementById('outputContent');
+        const saveToDriveCheckbox = document.getElementById('saveToDrive');
+        const driveOptions = document.getElementById('driveOptions');
+
+        // Toggle tampilan opsi drive
+        saveToDriveCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                driveOptions.classList.remove('hidden');
+            } else {
+                driveOptions.classList.add('hidden');
+            }
+        });
 
         // Menambahkan event listener saat form disubmit
         form.addEventListener('submit', async function(event) {
@@ -92,19 +131,26 @@
             statusMessage.className = 'mt-6 text-center text-sm font-medium';
             outputArea.classList.add('hidden'); // Sembunyikan area output lama
 
-
             // Mengambil nilai dari input
-            const webhookUrl = webhookUrlInput.value;
             const textData = textInput.value;
+            const saveToDrive = saveToDriveCheckbox.checked;
+            const driveFolder = document.getElementById('driveFolder').value;
+            const fileName = document.getElementById('fileName').value;
 
             // Data yang akan dikirim, dalam format JSON
             const payload = {
-                pesan: textData
+                pesan: textData,
+                // Opsi penyimpanan ke drive (dikirim sebagai metadata)
+                metadata: {
+                    saveToDrive: saveToDrive,
+                    driveFolder: driveFolder || null,
+                    fileName: fileName || null
+                }
             };
 
             try {
                 // Mengirim request ke URL webhook menggunakan metode POST
-                const response = await fetch(webhookUrl, {
+                const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
