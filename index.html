@@ -28,26 +28,22 @@
     <div class="w-full max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8 m-4">
         
         <div class="mb-6 text-center">
-            <h1 class="text-3xl font-bold text-gray-800">Konten Carousel Generator</h1>
-            <p class="text-gray-500 mt-2">Masukkan skrip untuk diproses.</p>
+            <h1 class="text-3xl font-bold text-gray-800">Kirim Data ke n8n</h1>
+            <p class="text-gray-500 mt-2">Masukkan pesan yang ingin dikirim ke webhook n8n.</p>
         </div>
 
         <!-- Form untuk input data -->
-<!--         <form id="webhookForm" class="space-y-6"> -->
-
-<!--             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">URL Webhook n8n</label>
-                <input type="text" class="block w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg" 
-                       value="https://n8n-ukfgpxzhkrwi.sate.sumopod.my.id/webhook/generate-slide" disabled>
-                <p class="text-xs text-gray-500 mt-1">URL webhook telah dikonfigurasi sebelumnya</p>
-            </div> -->
+        <form id="webhookForm" class="space-y-6">
             <div>
-                <label for="textInput" class="block text-sm font-medium text-gray-700 mb-1">Skrip Teks</label>
-                <textarea id="textInput" name="textInput" rows="4" class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Ketik skrip Anda di sini..." required></textarea>
+                <label for="textInput" class="block text-sm font-medium text-gray-700 mb-1">Pesan Teks</label>
+                <textarea id="textInput" name="textInput" rows="4" class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Ketik pesan Anda di sini..." required></textarea>
             </div>
 
-            <!-- Opsi penyimpanan ke Drive -->
-<!--             <div class="border-t border-gray-200 pt-4">
+            <!-- 
+                OPSI PENYIMPANAN KE DRIVE (DISEMBUNYIKAN SAAT INI)
+                Untuk mengaktifkan, hapus kelas 'hidden' dan sesuaikan dengan kebutuhan
+                
+            <div class="border-t border-gray-200 pt-4">
                 <h3 class="text-lg font-medium text-gray-800 mb-3">Opsi Penyimpanan ke Drive</h3>
                 
                 <div class="flex items-center mb-3">
@@ -55,7 +51,7 @@
                     <label for="saveToDrive" class="ml-2 block text-sm text-gray-700">Simpan hasil ke Google Drive</label>
                 </div>
                 
-                <div id="driveOptions" class="pl-6 mt-2 hidden">
+                <div id="driveOptions" class="pl-6 mt-2">
                     <div class="mb-3">
                         <label for="driveFolder" class="block text-sm font-medium text-gray-700 mb-1">Nama Folder</label>
                         <input type="text" id="driveFolder" name="driveFolder" class="block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Masukkan nama folder">
@@ -68,7 +64,8 @@
                         <p class="text-xs text-gray-500 mt-1">Jika kosong, akan menggunakan nama default</p>
                     </div>
                 </div>
-            </div> -->
+            </div>
+            -->
 
             <div>
                 <button type="submit" id="submitButton" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
@@ -94,21 +91,14 @@
     </div>
 
     <script>
-        // Hardcoded webhook URL
+        // Hardcoded webhook URL - GANTI DENGAN URL WEBHOOK ANDA
         const WEBHOOK_URL = "https://n8n-ukfgpxzhkrwi.sate.sumopod.my.id/webhook/generate-slide";
 
-        // Mengambil elemen-elemen dari DOM
-        // const form = document.getElementById('webhookForm');
-        const textInput = document.getElementById('textInput');
-        const statusMessage = document.getElementById('statusMessage');
-        const submitButton = document.getElementById('submitButton');
-        const buttonText = submitButton.querySelector('.button-text');
-        const buttonLoader = submitButton.querySelector('.button-loader');
-        const outputArea = document.getElementById('outputArea');
-        const outputContent = document.getElementById('outputContent');
+        // Kode untuk opsi penyimpanan ke Drive (dalam komentar)
+        /*
         const saveToDriveCheckbox = document.getElementById('saveToDrive');
         const driveOptions = document.getElementById('driveOptions');
-
+        
         // Toggle tampilan opsi drive
         saveToDriveCheckbox.addEventListener('change', function() {
             if (this.checked) {
@@ -117,6 +107,17 @@
                 driveOptions.classList.add('hidden');
             }
         });
+        */
+
+        // Mengambil elemen-elemen dari DOM
+        const form = document.getElementById('webhookForm');
+        const textInput = document.getElementById('textInput');
+        const statusMessage = document.getElementById('statusMessage');
+        const submitButton = document.getElementById('submitButton');
+        const buttonText = submitButton.querySelector('.button-text');
+        const buttonLoader = submitButton.querySelector('.button-loader');
+        const outputArea = document.getElementById('outputArea');
+        const outputContent = document.getElementById('outputContent');
 
         // Menambahkan event listener saat form disubmit
         form.addEventListener('submit', async function(event) {
@@ -133,19 +134,18 @@
 
             // Mengambil nilai dari input
             const textData = textInput.value;
-            const saveToDrive = saveToDriveCheckbox.checked;
-            const driveFolder = document.getElementById('driveFolder').value;
-            const fileName = document.getElementById('fileName').value;
-
+            
             // Data yang akan dikirim, dalam format JSON
             const payload = {
                 pesan: textData,
-                // Opsi penyimpanan ke drive (dikirim sebagai metadata)
+                // Opsi penyimpanan ke drive (dalam komentar)
+                /*
                 metadata: {
-                    saveToDrive: saveToDrive,
-                    driveFolder: driveFolder || null,
-                    fileName: fileName || null
+                    saveToDrive: document.getElementById('saveToDrive').checked,
+                    driveFolder: document.getElementById('driveFolder').value || null,
+                    fileName: document.getElementById('fileName').value || null
                 }
+                */
             };
 
             try {
