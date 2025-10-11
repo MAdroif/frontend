@@ -3,76 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Antarmuka Webhook n8n</title>
+    <title>Antarmuka Webhook n8n - AI Carousel Generator (Polling)</title>
     <!-- Memuat Tailwind CSS untuk styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* Menggunakan font Inter untuk tampilan yang lebih modern */
+        /* Menggunakan font Inter dan memastikan tampilan responsif */
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Style untuk tag <pre> agar teks bisa wrap dan mudah dibaca */
-        pre {
-            white-space: pre-wrap;       /* CSS 3 */
-            white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
-            white-space: -pre-wrap;      /* Opera 4-6 */
-            white-space: -o-pre-wrap;    /* Opera 7 */
-            word-wrap: break-word;       /* Internet Explorer 5.5+ */
+        .min-h-screen {
+            min-height: 100vh;
+        }
+        /* Style untuk Placeholder di Textarea */
+        #textInput::placeholder {
+            white-space: pre-line;
+            opacity: 0.7;
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="w-full max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8 m-4">
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4 sm:p-8">
+    
+    <div class="w-full max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl p-6 sm:p-10 transform transition-all duration-300">
         
-        <div class="mb-6 text-center">
-            <h1 class="text-3xl font-bold text-gray-800">Konten Carousel Generator</h1>
-            <p class="text-gray-500 mt-2">Masukkan skrip yang ingin diproses.</p>
+        <div class="mb-8 text-center">
+            <h1 class="text-4xl font-black text-blue-700">Slide Carousel Generator AI</h1>
+            <p class="text-gray-500 mt-2 text-lg font-medium">Pic by Code: Frontend dengan Polling Status n8n.</p>
         </div>
 
         <!-- Form untuk input data -->
         <form id="webhookForm" class="space-y-6">
             <div>
-                <label for="textInput" class="block text-sm font-medium text-gray-700 mb-1">Skrip Teks</label>
-                <textarea id="textInput" name="textInput" rows="4" class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Ketik skrip Anda di sini..." required></textarea>
+                <label for="textInput" class="block text-sm font-semibold text-gray-700 mb-2">Konten Slide</label>
+                <textarea 
+                    id="textInput" 
+                    name="textInput" 
+                    rows="8" 
+                    class="block w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-xl shadow-inner resize-none focus:ring-blue-500 focus:border-blue-500 transition duration-150 placeholder-gray-400 font-mono text-sm" 
+                    placeholder="Slide 1: Dulu secangkir kopi bisa bikin lo full power seharian.
+Kenapa bisa begitu?
+
+Slide 2: Mekanisme sederhana
+Kafein itu ngeblok zat ngantuk yang namanya adenosin..." 
+                    required
+                ></textarea>
             </div>
 
-            <!-- 
-                OPSI PENYIMPANAN KE DRIVE (DISEMBUNYIKAN SAAT INI)
-                Untuk mengaktifkan, hapus kelas 'hidden' dan sesuaikan dengan kebutuhan
-                
-            <div class="border-t border-gray-200 pt-4">
-                <h3 class="text-lg font-medium text-gray-800 mb-3">Opsi Penyimpanan ke Drive</h3>
-                
-                <div class="flex items-center mb-3">
-                    <input id="saveToDrive" name="saveToDrive" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                    <label for="saveToDrive" class="ml-2 block text-sm text-gray-700">Simpan hasil ke Google Drive</label>
+            <div class="form-group mb-6">
+                <label for="creatorNameInput" class="block text-sm font-semibold text-gray-700 mb-2">Creator Name / Watermark</label>
+                <input 
+                    type="text" 
+                    id="creatorNameInput" 
+                    name="creatorNameInput" 
+                    class="block w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-xl shadow-inner focus:ring-blue-500 focus:border-blue-500 transition duration-150 placeholder-gray-400" 
+                    placeholder="Masukkan nama kreator untuk watermark..."
+                    value="Data Frame" 
+                >
+            </div>
+
+            <!-- KOLOM INPUT BARU (Template dan Tone) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Kolom 1: Gaya Template -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Gaya Template (Visual)</label>
+                    <div id="templateStyleContainer" class="space-y-2">
+                        <!-- Opsi Gaya Template menggunakan tombol -->
+                        <button type="button" data-value="minimalist" class="template-option w-full text-left p-3 border border-gray-300 rounded-xl transition duration-150 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <span class="font-medium">Minimalis</span> - Bersih & Fokus
+                        </button>
+                        <button type="button" data-value="casual" class="template-option w-full text-left p-3 border border-gray-300 rounded-xl transition duration-150 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <span class="font-medium">Kasual</span> - Hangat & Ramah
+                        </button>
+                        <button type="button" data-value="best" class="template-option w-full text-left p-3 border border-gray-300 rounded-xl transition duration-150 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <span class="font-medium">Terbaik</span> - Desain Paling Detail
+                        </button>
+                    </div>
+                    <!-- Input tersembunyi untuk menyimpan nilai yang dipilih -->
+                    <input type="hidden" id="selectedTemplate" name="selectedTemplate" required>
                 </div>
-                
-                <div id="driveOptions" class="pl-6 mt-2">
-                    <div class="mb-3">
-                        <label for="driveFolder" class="block text-sm font-medium text-gray-700 mb-1">Nama Folder</label>
-                        <input type="text" id="driveFolder" name="driveFolder" class="block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Masukkan nama folder">
-                        <p class="text-xs text-gray-500 mt-1">Contoh: Laporan, Data-User, Backup</p>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="fileName" class="block text-sm font-medium text-gray-700 mb-1">Nama File (opsional)</label>
-                        <input type="text" id="fileName" name="fileName" class="block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Masukkan nama file">
-                        <p class="text-xs text-gray-500 mt-1">Jika kosong, akan menggunakan nama default</p>
-                    </div>
+
+                <!-- Kolom 2: Nada Bicara (Tone) -->
+                <div>
+                    <label for="toneInput" class="block text-sm font-semibold text-gray-700 mb-2">Nada Bicara (Tone)</label>
+                    <select id="toneInput" name="toneInput" class="block w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-xl shadow-inner focus:ring-blue-500 focus:border-blue-500 transition duration-150" required>
+                        <option value="">-- Pilih Nada --</option>
+                        <option value="inspiring">Menginspirasi</option>
+                        <option value="analytical">Analitis / Ilmiah</option>
+                        <option value="friendly">Ramah / Santai</option>
+                        <option value="serious">Tegas / Serius</option>
+                        <option value="humorous">Humoris / Lucu</option>
+                    </select>
                 </div>
             </div>
-            -->
+
 
             <div>
-                <button type="submit" id="submitButton" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
-                    <!-- State default tombol -->
-                    <span class="button-text">Kirim Data</span>
+                <button type="submit" id="submitButton" class="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 transform hover:scale-[1.005] active:scale-[0.99] disabled:opacity-60">
+                    <span class="button-text">Buat dan Tampilkan Slide</span>
                     <!-- State loading, disembunyikan secara default -->
-                    <svg class="animate-spin h-5 w-5 text-white hidden button-loader" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg class="animate-spin h-6 w-6 text-white hidden button-loader" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -81,113 +112,325 @@
         </form>
 
         <!-- Area untuk menampilkan status pengiriman -->
-        <div id="statusMessage" class="mt-6 text-center text-sm font-medium"></div>
+        <div id="statusMessage" class="mt-8 text-center text-base font-medium min-h-[1.5rem]"></div>
+        <div id="pollingStatus" class="mt-2 text-center text-sm font-medium min-h-[1.5rem] text-gray-500 italic"></div>
 
-        <!-- Area baru untuk menampilkan output dari webhook, disembunyikan secara default -->
-        <div id="outputArea" class="mt-4 hidden">
-            <label class="block text-sm font-medium text-gray-800">Output dari n8n:</label>
-            <pre id="outputContent" class="mt-2 p-4 bg-gray-900 text-white rounded-lg text-left text-sm border border-gray-700"></pre>
+        <!-- Kontainer untuk menampilkan slide gambar dari n8n -->
+        <div id="slides-container" class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Gambar dan tombol download akan ditambahkan di sini oleh JavaScript -->
         </div>
     </div>
 
     <script>
-        // Hardcoded webhook URL - GANTI DENGAN URL WEBHOOK ANDA
-        const WEBHOOK_URL = "https://n8n-ukfgpxzhkrwi.sate.sumopod.my.id/webhook/generate-slide";
-
-        // Kode untuk opsi penyimpanan ke Drive (dalam komentar)
-        /*
-        const saveToDriveCheckbox = document.getElementById('saveToDrive');
-        const driveOptions = document.getElementById('driveOptions');
-        
-        // Toggle tampilan opsi drive
-        saveToDriveCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                driveOptions.classList.remove('hidden');
-            } else {
-                driveOptions.classList.add('hidden');
-            }
-        });
-        */
-
-        // Mengambil elemen-elemen dari DOM
+        // --- 1. SETUP VARIABEL DOM & KONFIGURASI ---
         const form = document.getElementById('webhookForm');
         const textInput = document.getElementById('textInput');
+        const creatorNameInput = document.getElementById('creatorNameInput');
+        const toneInput = document.getElementById('toneInput'); // Nada Bicara (Select)
+        const selectedTemplateHiddenInput = document.getElementById('selectedTemplate');
+        const templateOptions = document.querySelectorAll('.template-option'); // Gaya Template (Buttons)
+
         const statusMessage = document.getElementById('statusMessage');
+        const pollingStatus = document.getElementById('pollingStatus');
         const submitButton = document.getElementById('submitButton');
         const buttonText = submitButton.querySelector('.button-text');
         const buttonLoader = submitButton.querySelector('.button-loader');
-        const outputArea = document.getElementById('outputArea');
-        const outputContent = document.getElementById('outputContent');
+        const slidesContainer = document.getElementById('slides-container');
 
-        // Menambahkan event listener saat form disubmit
+        // State untuk Gaya Template
+        let selectedTemplate = null; 
+
+        // PENTING: GANTI URL ini dengan URL Webhook n8n yang sebenarnya untuk memicu JOB (Endpoint 1)
+        const triggerWebhookUrl = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/v6';
+
+        // PENTING: TENTUKAN URL Webhook n8n untuk Polling Status (Endpoint 2).
+        const statusWebhookUrl = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/polling-v6'; 
+        
+        let pollingInterval = null;
+        const POLLING_RATE_SECONDS = 5; // Polling setiap 5 detik
+
+        // --- FUNGSI UTILITY: RETRY FETCH DENGAN EXPONENTIAL BACKOFF ---
+        /**
+         * Mencoba fungsi fetch hingga maksimal jumlah retry yang ditentukan.
+         * @param {string} url - URL yang akan dipanggil.
+         * @param {object} options - Opsi untuk fetch (method, headers, body, dll).
+         * @param {number} maxRetries - Jumlah maksimum percobaan.
+         * @returns {Promise<Response>}
+         */
+        async function retryFetch(url, options = {}, maxRetries = 3) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return response;
+                    }
+                    // Jika respons tidak OK, lempar error untuk mencoba lagi (kecuali ini percobaan terakhir)
+                    if (i === maxRetries - 1) {
+                         throw new Error(`Permintaan gagal dengan status ${response.status}.`);
+                    }
+                } catch (error) {
+                    // Hanya retry jika error adalah TypeError (biasanya 'Failed to fetch' / masalah jaringan)
+                    if (error instanceof TypeError && i < maxRetries - 1) {
+                        const delay = Math.pow(2, i) * 1000; // 1s, 2s, 4s
+                        console.warn(`[Retry] Gagal fetch ke ${url}. Mencoba ulang dalam ${delay}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue; // Lanjutkan ke iterasi berikutnya (retry)
+                    }
+                    throw error; // Lempar error jika ini adalah percobaan terakhir atau error non-jaringan
+                }
+            }
+            throw new Error('Gagal melakukan permintaan setelah beberapa kali percobaan.');
+        }
+
+        // --- 2. HANDLER PILIHAN GAYA TEMPLATE ---
+        templateOptions.forEach(button => {
+            button.addEventListener('click', () => {
+                // Hapus kelas aktif dari semua
+                templateOptions.forEach(btn => {
+                    btn.classList.remove('bg-blue-100', 'border-blue-500', 'ring-2');
+                    btn.classList.add('border-gray-300');
+                });
+
+                // Tambahkan kelas aktif ke tombol yang diklik
+                button.classList.add('bg-blue-100', 'border-blue-500', 'ring-2');
+                button.classList.remove('border-gray-300');
+                
+                selectedTemplate = button.getAttribute('data-value');
+                selectedTemplateHiddenInput.value = selectedTemplate; // Update hidden input for validation/payload
+            });
+        });
+
+        // --- 3. FUNGSI DOWNLOAD FILE ---
+        /** Mengunduh file dari URL ke komputer pengguna */
+        async function downloadFile(url, filename, statusElement) {
+            try {
+                // Menggunakan retryFetch untuk download
+                const fetchResponse = await retryFetch(url);
+
+                const blob = await fetchResponse.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                
+                const tempLink = document.createElement('a');
+                tempLink.href = blobUrl;
+                tempLink.download = filename;
+                
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+                
+                URL.revokeObjectURL(blobUrl);
+            } catch (error) {
+                console.error('Kesalahan saat mengunduh:', error);
+                if (statusElement) {
+                    statusElement.textContent = `Error mengunduh: ${error.message}`;
+                    statusElement.className = 'mt-8 text-center text-base font-medium text-red-600';
+                }
+            }
+        }
+
+        // --- 4. FUNGSI MENAMPILKAN SLIDE ---
+        /** Menampilkan gambar slide hasil rendering ke DOM */
+        function displaySlides(slides) {
+            slidesContainer.innerHTML = ''; // Kosongkan
+            slides.forEach((slide, index) => {
+                const slideWrapper = document.createElement('div');
+                slideWrapper.className = 'relative group overflow-hidden rounded-xl shadow-xl bg-gray-100 border border-gray-200 hover:shadow-2xl transition duration-300 transform hover:-translate-y-1';
+
+                const placeholderImgUrl = `https://placehold.co/600x600/1D4ED8/ffffff?text=Slide+${index + 1}+Processing...`;
+                
+                const img = document.createElement('img');
+                img.src = placeholderImgUrl;
+                img.alt = `Slide ${index + 1}`;
+                img.className = 'w-full h-auto object-cover transition-all duration-500 opacity-0 group-hover:scale-105';
+                
+                img.onload = () => {
+                    img.src = slide.download_url; // Ganti ke URL asli
+                    img.classList.add('opacity-100');
+                    img.classList.remove('opacity-0');
+                };
+                img.onerror = () => {
+                    img.src = `https://placehold.co/600x600/EF4444/ffffff?text=Gagal+Memuat+Slide+${index + 1}`;
+                    statusMessage.textContent = `❌ Perhatian: Gagal memuat setidaknya satu gambar. Cek URL di log n8n.`;
+                    statusMessage.className = 'mt-8 text-center text-base font-medium text-red-600';
+                }
+                
+                // Elemen Tombol Download
+                const btn = document.createElement('button');
+                btn.className = 'absolute bottom-3 right-3 bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-full shadow-lg hover:bg-blue-800 transition-all duration-300 transform translate-y-12 group-hover:translate-y-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1';
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L10 11.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg><span>Unduh Slide</span>`;
+                
+                btn.addEventListener('click', async (e) => {
+                    const downloadButton = e.currentTarget;
+                    const originalText = downloadButton.querySelector('span').textContent;
+                    
+                    downloadButton.querySelector('span').textContent = 'Mengunduh...';
+                    downloadButton.disabled = true;
+
+                    const filename = slide.filename || `slide-${index + 1}-carousel.jpg`;
+                    await downloadFile(slide.download_url, filename, statusMessage);
+                    
+                    downloadButton.querySelector('span').textContent = originalText;
+                    downloadButton.disabled = false;
+                });
+
+                slideWrapper.appendChild(img);
+                slideWrapper.appendChild(btn);
+                slidesContainer.appendChild(slideWrapper);
+            });
+        }
+
+        // --- 5. FUNGSI POLING STATUS JOB ---
+        /** Memanggil endpoint status n8n untuk memeriksa apakah job sudah selesai. */
+        async function checkJobStatus(jobId) {
+            pollingStatus.textContent = `Pengecekan status Job ID ${jobId}...`;
+            
+            try {
+                // Menggunakan retryFetch untuk Polling
+                const response = await retryFetch(`${statusWebhookUrl}?jobId=${encodeURIComponent(jobId)}`);
+                
+                const data = await response.json();
+                
+                // Asumsi: Polling Endpoint biasanya mengembalikan array, dan item pertama adalah status job
+                const jobData = data && Array.isArray(data) && data.length > 0 ? data[0] : null;
+
+                if (!jobData || !jobData.status) {
+                    throw new Error('Respon status polling tidak valid dari server n8n. Harap periksa format respons n8n di konsol.');
+                }
+
+                if (jobData.status === 'Completed' && jobData.slides && Array.isArray(jobData.slides) && jobData.slides.length > 0) {
+                    
+                    // --- JOB SELESAI & BERHASIL ---
+                    clearInterval(pollingInterval); 
+                    
+                    statusMessage.textContent = `✅ Berhasil membuat ${jobData.slides.length} slide! Job ID: ${jobId}.`;
+                    statusMessage.classList.remove('text-blue-600', 'text-red-600');
+                    statusMessage.classList.add('text-green-600');
+                    
+                    pollingStatus.textContent = 'Proses selesai. Hasil ditampilkan di bawah.';
+
+                    // Tampilkan gambar
+                    displaySlides(jobData.slides);
+
+                    // Reset tombol
+                    buttonText.classList.remove('hidden');
+                    buttonLoader.classList.add('hidden');
+                    submitButton.disabled = false;
+                    
+                } else if (jobData.status === 'Failed') {
+                    
+                    // --- JOB GAGAL ---
+                    clearInterval(pollingInterval); 
+                    throw new Error(`Pembuatan slide gagal di sisi n8n/AI. Job ID: ${jobId}`);
+
+                } else {
+                    // --- JOB MASIH DIPROSES ---
+                    const remainingMessage = jobData.progress_message || 'Mohon tunggu 5 detik lagi...';
+                    pollingStatus.textContent = `Status: Masih diproses (${remainingMessage}). Memeriksa ulang dalam ${POLLING_RATE_SECONDS} detik.`;
+                    statusMessage.textContent = `⏳ Pekerjaan AI sedang berlangsung. Job ID: ${jobId}.`;
+                    statusMessage.classList.remove('text-green-600', 'text-red-600');
+                    statusMessage.classList.add('text-blue-600');
+                }
+            } catch (error) {
+                // Tangani error Polling
+                clearInterval(pollingInterval); 
+                // Tambahkan jobId ke console error jika tersedia
+                const displayJobId = typeof jobId !== 'undefined' ? ` Job ID: ${jobId}` : '';
+                console.error(`Error Polling${displayJobId}:`, error);
+                statusMessage.textContent = `❌ Error Polling: ${error.message}.${displayJobId}`;
+                statusMessage.className = 'mt-8 text-center text-base font-medium text-red-600';
+                pollingStatus.textContent = 'Proses Polling dihentikan karena error.';
+                
+                // Reset tombol
+                buttonText.classList.remove('hidden');
+                buttonLoader.classList.add('hidden');
+                submitButton.disabled = false;
+            }
+        }
+
+
+        // --- 6. HANDLER SUBMIT FORM (Memicu Job & Memulai Polling) ---
         form.addEventListener('submit', async function(event) {
-            // Mencegah perilaku default form (reload halaman)
             event.preventDefault();
 
-            // Menampilkan status loading pada tombol dan mereset tampilan
+            // --- VALIDASI TAMBAHAN UNTUK TEMPLATE/TONE ---
+            if (!selectedTemplate || toneInput.value === "") {
+                const message = !selectedTemplate ? 'Gaya Template' : 'Nada Bicara';
+                statusMessage.textContent = `❌ Mohon pilih ${message} terlebih dahulu sebelum memulai proses.`;
+                statusMessage.className = 'mt-8 text-center text-base font-medium text-red-600';
+                return; // Hentikan proses
+            }
+            
+            // Hapus polling sebelumnya jika ada
+            if (pollingInterval) clearInterval(pollingInterval);
+            
+            // Tampilkan Loading State awal
             buttonText.classList.add('hidden');
             buttonLoader.classList.remove('hidden');
             submitButton.disabled = true;
-            statusMessage.textContent = '';
-            statusMessage.className = 'mt-6 text-center text-sm font-medium';
-            outputArea.classList.add('hidden'); // Sembunyikan area output lama
-
-            // Mengambil nilai dari input
-            const textData = textInput.value;
+            slidesContainer.innerHTML = '';
             
-            // Data yang akan dikirim, dalam format JSON
+            statusMessage.textContent = '⏳ Mengirim data ke n8n untuk memulai Job AI...';
+            statusMessage.className = 'mt-8 text-center text-base font-medium text-blue-600';
+            pollingStatus.textContent = '';
+
+
+            // Payload untuk Webhook Trigger
             const payload = {
-                pesan: textData,
-                // Opsi penyimpanan ke drive (dalam komentar)
-                /*
-                metadata: {
-                    saveToDrive: document.getElementById('saveToDrive').checked,
-                    driveFolder: document.getElementById('driveFolder').value || null,
-                    fileName: document.getElementById('fileName').value || null
-                }
-                */
+                pesan: textInput.value,
+                creator_name: creatorNameInput.value,
+                template_style: selectedTemplate, 
+                tone_of_voice: toneInput.value   
             };
+            
+            console.log('Payload dikirim:', payload);
 
             try {
-                // Mengirim request ke URL webhook menggunakan metode POST
-                const response = await fetch(WEBHOOK_URL, {
+                // === A. Panggil Webhook n8n (Trigger) dengan retryFetch ===
+                const response = await retryFetch(triggerWebhookUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload) 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
-
-                // Mencoba membaca respon sebagai JSON, terlepas dari status OK atau tidak
-                // Ini penting agar pesan error dari n8n (yang juga JSON) bisa ditangkap
-                const result = await response.json();
-
-                // Memeriksa apakah request berhasil (status code 200-299)
-                if (response.ok) {
-                    console.log('Respon dari n8n:', result);
-                    
-                    // Menampilkan pesan status sukses
-                    statusMessage.textContent = 'Data berhasil terkirim dan respon diterima!';
-                    statusMessage.classList.add('text-green-600');
-
-                    // Menampilkan output JSON di area yang ditentukan
-                    // JSON.stringify(result, null, 2) digunakan untuk format JSON yang rapi (pretty-print)
-                    outputContent.textContent = JSON.stringify(result, null, 2);
-                    outputArea.classList.remove('hidden'); // Tampilkan area output
-
-                } else {
-                    // Jika server merespon dengan error, tetap tampilkan output error jika ada
-                    const errorMessage = (result && result.message) ? result.message : 'Terjadi kesalahan tidak diketahui.';
-                    throw new Error(`Gagal mengirim data. Status: ${response.status}. Pesan dari n8n: ${errorMessage}`);
+                
+                // Ambil data JSON. Tangani error parsing jika bukan JSON.
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    throw new Error(`Gagal memparsing respons Webhook. Status: ${response.status}. Respons mungkin bukan JSON.`);
                 }
 
+                if (!response.ok) {
+                    let errorDetails = data.message || JSON.stringify(data) || `Status: ${response.status}`;
+                    throw new Error(`Gagal memicu Job n8n (HTTP Error). Detail: ${errorDetails}`);
+                }
+                
+                // --- LOGIKA PENGAMBILAN JOB ID (Disesuaikan dengan format objek tunggal: {job_id: "...", status: "submitted"}) ---
+                const jobId = data ? data.job_id : null; 
+                const status = data ? data.status : null;
+                
+                if (!jobId || status !== 'submitted') {
+                    console.error('Data Respons Webhook Tidak Valid:', data);
+                    throw new Error(`n8n tidak mengembalikan Job ID valid atau status bukan "submitted". Respons: ${JSON.stringify(data)}`);
+                }
+                // ----------------------------------------------------------------------------------
+
+                statusMessage.textContent = `🚀 Job AI dimulai. Job ID: ${jobId}. Memulai Polling...`;
+                pollingStatus.textContent = `Memeriksa status Job ID ${jobId} setiap ${POLLING_RATE_SECONDS} detik.`;
+
+                // === B. Mulai Polling ===
+                await checkJobStatus(jobId);
+
+                // Atur interval Polling
+                pollingInterval = setInterval(() => checkJobStatus(jobId), POLLING_RATE_SECONDS * 1000);
+
             } catch (error) {
-                // Menangkap error jika terjadi masalah jaringan atau parsing JSON
-                console.error('Terjadi kesalahan:', error);
-                statusMessage.textContent = `${error.message}`;
-                statusMessage.classList.add('text-red-600');
-            } finally {
-                // Mengembalikan tombol ke state semula setelah selesai
+                // Tangani error Trigger Webhook
+                console.error('Error Trigger Webhook:', error);
+                statusMessage.textContent = `❌ Error saat memicu Job: ${error.message}.`;
+                statusMessage.className = 'mt-8 text-center text-base font-medium text-red-600';
+                
+                // Reset tombol
                 buttonText.classList.remove('hidden');
                 buttonLoader.classList.add('hidden');
                 submitButton.disabled = false;
