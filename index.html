@@ -282,30 +282,30 @@ Kafein itu ngeblok zat ngantuk yang namanya adenosin..."
         // --- 5. FUNGSI POLING STATUS JOB ---
         /** Memanggil endpoint status n8n untuk memeriksa apakah job sudah selesai. */
         async function checkJobStatus(jobId) {
-                pollingStatus.textContent = `Pengecekan status Job ID ${jobId}...`;
-                
-                try {
-                    const response = await retryFetch(`${statusWebhookUrl}?jobId=${encodeURIComponent(jobId)}`);
-                    const data = await response.json();
-                    
-                    // === FORMAT HANDLING YANG LEBIH FLEKSIBEL ===
-                    let jobData = null;
-                    
-                    if (Array.isArray(data) && data.length > 0) {
-                        jobData = data[0]; // Format: [{...}]
-                    } else if (data && typeof data === 'object') {
-                        jobData = data; // Format: {...}
-                    } else if (data === null || data === undefined) {
-                        // Data kosong - job mungkin belum tersedia
-                        pollingStatus.textContent = `Job belum tersedia di sistem. Memeriksa ulang dalam ${POLLING_RATE_SECONDS} detik.`;
-                        return;
-                    }
+            pollingStatus.textContent = `Pengecekan status Job ID ${jobId}...`;
             
-                    if (!jobData || !jobData.status) {
-                        console.error('❌ Response polling tidak valid:', data);
-                        throw new Error('Respon status polling tidak valid dari server n8n. Format yang diharapkan: {status: "...", slides: [...]}');
-                    }
-                    // ... rest of the code tetap sama
+            try {
+                const response = await retryFetch(`${statusWebhookUrl}?jobId=${encodeURIComponent(jobId)}`);
+                const data = await response.json();
+                
+                // === FORMAT HANDLING YANG LEBIH FLEKSIBEL ===
+                let jobData = null;
+                
+                if (Array.isArray(data) && data.length > 0) {
+                    jobData = data[0]; // Format: [{...}]
+                } else if (data && typeof data === 'object') {
+                    jobData = data; // Format: {...}
+                } else if (data === null || data === undefined) {
+                    // Data kosong - job mungkin belum tersedia
+                    pollingStatus.textContent = `Job belum tersedia di sistem. Memeriksa ulang dalam ${POLLING_RATE_SECONDS} detik.`;
+                    return;
+                }
+        
+                if (!jobData || !jobData.status) {
+                    console.error('❌ Response polling tidak valid:', data);
+                    throw new Error('Respon status polling tidak valid dari server n8n. Format yang diharapkan: {status: "...", slides: [...]}');
+                }
+                // ... rest of the code tetap sama
 
                 if (jobData.status === 'Completed' && jobData.slides && Array.isArray(jobData.slides) && jobData.slides.length > 0) {
                     
