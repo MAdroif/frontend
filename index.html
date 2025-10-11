@@ -305,9 +305,10 @@ Kafein itu ngeblok zat ngantuk yang namanya adenosin..."
                     console.error('❌ Response polling tidak valid:', data);
                     throw new Error('Respon status polling tidak valid dari server n8n. Format yang diharapkan: {status: "...", slides: [...]}');
                 }
-                // ... rest of the code tetap sama
-
-                if (jobData.status === 'Completed' && jobData.slides && Array.isArray(jobData.slides) && jobData.slides.length > 0) {
+        
+                // ✅ PERHATIAN: Status di response adalah "COMPLETED" (huruf besar semua)
+                // tapi di kode Anda dicek 'Completed' (huruf besar di awal)
+                if (jobData.status === 'COMPLETED' && jobData.slides && Array.isArray(jobData.slides) && jobData.slides.length > 0) {
                     
                     // --- JOB SELESAI & BERHASIL ---
                     clearInterval(pollingInterval); 
@@ -317,10 +318,10 @@ Kafein itu ngeblok zat ngantuk yang namanya adenosin..."
                     statusMessage.classList.add('text-green-600');
                     
                     pollingStatus.textContent = 'Proses selesai. Hasil ditampilkan di bawah.';
-
+        
                     // Tampilkan gambar
                     displaySlides(jobData.slides);
-
+        
                     // Reset tombol
                     buttonText.classList.remove('hidden');
                     buttonLoader.classList.add('hidden');
@@ -331,7 +332,7 @@ Kafein itu ngeblok zat ngantuk yang namanya adenosin..."
                     // --- JOB GAGAL ---
                     clearInterval(pollingInterval); 
                     throw new Error(`Pembuatan slide gagal di sisi n8n/AI. Job ID: ${jobId}`);
-
+        
                 } else {
                     // --- JOB MASIH DIPROSES ---
                     const remainingMessage = jobData.progress_message || 'Mohon tunggu 5 detik lagi...';
