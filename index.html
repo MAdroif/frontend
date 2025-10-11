@@ -405,8 +405,8 @@ Kafein itu ngeblok zat ngantuk yang namanya adenosin..."
                     throw new Error(`Gagal memicu Job n8n (HTTP Error). Detail: ${errorDetails}`);
                 }
                 
-                // --- LOGIKA PENGAMBILAN JOB ID (Disesuaikan dengan format objek tunggal: {job_id: "...", status: "submitted"}) ---
-                const jobId = data ? data.job_id : null; 
+                // --- LOGIKA PENGAMBILAN JOB ID (Disesuaikan dengan format objek tunggal: {jobId: "...", status: "submitted"}) ---
+                const jobId = data ? data.jobId : null; 
                 const status = data ? data.status : null;
                 
                 if (!jobId || status !== 'submitted') {
