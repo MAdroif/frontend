@@ -16,13 +16,6 @@
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
-    .neon-blue {
-      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-    }
-    .neon-blue:hover {
-      background: linear-gradient(135deg, #00e1fe 0%, #3a9bfe 100%);
-      box-shadow: 0 0 20px rgba(79,172, 254, 0.5);
-    }
   </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -61,7 +54,7 @@
           <svg id="sun-icon" class="w-5 h-5 text-gray-600 dark:text-gray-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
           </svg>
-          <svg id="moon-icon" class="w-5 h-5 text-gray-600 dark:text-gray-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg id="moon-icon" class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
           </svg>
         </button>
@@ -75,8 +68,8 @@
         <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
           <div class="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600"></div>
         </div>
-        <h1 class="text-3xl font-bold mb-2 text-gray-900 dark:text-white">Selamat datang di Carousel Generator!</h1>
-        <p class="text-gray-600 dark:text-gray-400">Di mana imajinasi bertemu dengan desain bertenaga AI untuk membuat slide Anda hari ini!</p>
+        <h1 class="text-3xl font-bold mb-2 text-gray-900 dark:text-white">Welcome back Alex!</h1>
+        <p class="text-gray-600 dark:text-gray-400">Where imagination meets AI-powered design to craft your slides today!</p>
       </div>
 
       <!-- Generation Form -->
@@ -132,7 +125,7 @@
         <div class="p-6 pt-0">
           <div class="flex items-end gap-3 p-3 rounded-xl border bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600">
             <textarea id="script-input" placeholder="Tell us about your presentation..." rows="3" class="flex-1 bg-transparent resize-none focus:outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"></textarea>
-            <button onclick="handleGenerate()" id="send-btn" class="p-3 rounded-lg transition-all flex-shrink-0 neon-blue shadow-lg">
+            <button onclick="handleGenerate()" id="send-btn" class="p-3 rounded-lg transition-all flex-shrink-0 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-lg hover:shadow-cyan-500/50">
               <svg id="send-icon" class="text-white w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
               </svg>
@@ -176,42 +169,30 @@
 
   <script>
     // ==================== GANTI WEBHOOK URL DI SINI ====================
-    const SUBMIT_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/v5';  // ← GANTI INI
-    const STATUS_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/pollingv5';  // ← GANTI INI
+    const SUBMIT_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/v5';  // ← GANTI INI (Trigger Endpoint)
+    const STATUS_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/pollingv5';  // ← GANTI INI (Polling Endpoint)
     // ===================================================================
 
     let isGenerating = false;
     let sidebarOpen = true;
-    let darkMode = localStorage.getItem('darkMode') === 'true';
-    if (localStorage.getItem('darkMode') === null) {
-      darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
+    let darkMode = localStorage.getItem('darkMode') === 'true' || window.matchMedia('(prefers-color-scheme: dark)').matches;
     let history = JSON.parse(localStorage.getItem('slideHistory') || '[]');
 
     // Initialize
-    // Initialize dark mode
     if (darkMode) {
       document.documentElement.classList.add('dark');
       document.getElementById('sun-icon').classList.remove('hidden');
       document.getElementById('moon-icon').classList.add('hidden');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.getElementById('sun-icon').classList.add('hidden');
-      document.getElementById('moon-icon').classList.remove('hidden');
     }
     
     // Set initial sidebar state for desktop
-    //if (window.innerWidth >= 1024) {
-    //  document.getElementById('main-content').style.marginLeft = '16rem';
-    //} else {
-    //  sidebarOpen = false;
-    //  document.getElementById('sidebar').style.transform = 'translateX(-100%)';
-    //  document.getElementById('main-content').style.marginLeft = '0';
-    //}
-    // Set initial sidebar state - hidden by default
-    sidebarOpen = false;
-    document.getElementById('sidebar').style.transform = 'translateX(-100%)';
-    document.getElementById('main-content').style.marginLeft = '0';
+    if (window.innerWidth >= 1024) {
+      document.getElementById('main-content').style.marginLeft = '16rem';
+    } else {
+      sidebarOpen = false;
+      document.getElementById('sidebar').style.transform = 'translateX(-100%)';
+      document.getElementById('main-content').style.marginLeft = '0';
+    }
     
     renderHistory();
 
@@ -235,15 +216,17 @@
     function toggleDarkMode() {
       darkMode = !darkMode;
       localStorage.setItem('darkMode', darkMode);
+      document.documentElement.classList.toggle('dark');
+      
+      const sunIcon = document.getElementById('sun-icon');
+      const moonIcon = document.getElementById('moon-icon');
       
       if (darkMode) {
-        document.documentElement.classList.add('dark');
-        document.getElementById('sun-icon').classList.remove('hidden');
-        document.getElementById('moon-icon').classList.add('hidden');
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
       } else {
-        document.documentElement.classList.remove('dark');
-        document.getElementById('sun-icon').classList.add('hidden');
-        document.getElementById('moon-icon').classList.remove('hidden');
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
       }
     }
 
@@ -432,25 +415,38 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            script,
-            creator_name: document.getElementById('creator-name').value,
-            template: document.getElementById('template').value,
-            voice_tone: document.getElementById('voice-tone').value
+            textInput: script, // Sesuai dengan sistem asli
+            creatorNameInput: document.getElementById('creator-name').value || 'Data Frame',
+            selectedTemplate: document.getElementById('template').value,
+            toneInput: document.getElementById('voice-tone').value
           })
         });
         
         const data = await response.json();
         
-        if (data.job_id) {
-          showNotification('Generation started...', 'info');
-          pollStatus(data.job_id, script);
+        // Handle response format (bisa langsung jobId atau dalam object)
+        let jobId = null;
+        
+        if (data.jobId) {
+          jobId = data.jobId;
+        } else if (data.job_id) {
+          jobId = data.job_id;
+        } else if (typeof data === 'string') {
+          jobId = data; // Kalau response langsung string jobId
+        }
+        
+        if (jobId) {
+          showNotification('Generation started... Job ID: ' + jobId, 'info');
+          pollStatus(jobId, script);
         } else {
-          throw new Error('No job ID received');
+          console.error('Response:', data);
+          throw new Error('No job ID received from n8n. Check response format.');
         }
       } catch (error) {
         isGenerating = false;
         updateUI();
         showNotification('Error starting generation: ' + error.message, 'error');
+        console.error('Submit error:', error);
       }
     }
 
@@ -462,14 +458,14 @@
       
       if (isGenerating) {
         sendBtn.disabled = true;
-        sendBtn.classList.remove('neon-blue');
+        sendBtn.classList.remove('bg-gradient-to-r', 'from-cyan-500', 'to-blue-600', 'hover:from-cyan-600', 'hover:to-blue-700');
         sendBtn.classList.add('bg-gray-500', 'cursor-not-allowed');
         sendIcon.classList.add('hidden');
         loaderIcon.classList.remove('hidden');
         progressContainer.classList.remove('hidden');
       } else {
         sendBtn.disabled = false;
-        sendBtn.classList.add('neon-blue');
+        sendBtn.classList.add('bg-gradient-to-r', 'from-cyan-500', 'to-blue-600', 'hover:from-cyan-600', 'hover:to-blue-700');
         sendBtn.classList.remove('bg-gray-500', 'cursor-not-allowed');
         sendIcon.classList.remove('hidden');
         loaderIcon.classList.add('hidden');
