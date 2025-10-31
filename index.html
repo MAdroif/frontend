@@ -428,29 +428,51 @@
       updateUI();
       
       try {
+        console.log('Sending request to:', SUBMIT_WEBHOOK);
+        
         const response = await fetch(SUBMIT_WEBHOOK, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
           body: JSON.stringify({
             script,
-            creator_name: document.getElementById('creator-name').value,
+            creator_name: document.getElementById('creator-name').value || '',
             template: document.getElementById('template').value,
             voice_tone: document.getElementById('voice-tone').value
           })
         });
         
-        const data = await response.json();
+        console.log('Response status:', response.status);
         
-        if (data.jobId) {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        // Support both jobId and job_id formats
+        const jobId = data.jobId || data.job_id;
+        
+        if (jobId) {
           showNotification('Generation started...', 'info');
-          pollStatus(data.jobId, script);
+          pollStatus(jobId, script);
         } else {
-          throw new Error('No job ID received');
+          console.error('No job ID in response:', data);
+          throw new Error('No job ID received. Response: ' + JSON.stringify(data));
         }
       } catch (error) {
+        console.error('Fetch error:', error);
         isGenerating = false;
         updateUI();
-        showNotification('Error starting generation: ' + error.message, 'error');
+        
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+          showNotification('Network error: Cannot connect to server. Check your internet connection and CORS settings.', 'error');
+        } else {
+          showNotification('Error starting generation: ' + error.message, 'error');
+        }
       }
     }
 
