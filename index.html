@@ -411,9 +411,15 @@
       updateUI();
       
       try {
+        console.log('Submitting to:', SUBMIT_WEBHOOK); // Debug
+        
         const response = await fetch(SUBMIT_WEBHOOK, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          mode: 'cors',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
           body: JSON.stringify({
             textInput: script, // Sesuai dengan sistem asli
             creatorNameInput: document.getElementById('creator-name').value || 'Data Frame',
@@ -422,7 +428,12 @@
           })
         });
         
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const data = await response.json();
+        console.log('Submit response:', data); // Debug
         
         // Handle response format (bisa langsung jobId atau dalam object)
         let jobId = null;
@@ -433,6 +444,8 @@
           jobId = data.job_id;
         } else if (typeof data === 'string') {
           jobId = data; // Kalau response langsung string jobId
+        } else if (Array.isArray(data) && data.length > 0 && data[0].jobId) {
+          jobId = data[0].jobId; // Format array
         }
         
         if (jobId) {
@@ -440,12 +453,12 @@
           pollStatus(jobId, script);
         } else {
           console.error('Response:', data);
-          throw new Error('No job ID received from n8n. Check response format.');
+          throw new Error('No job ID received from n8n. Check console for response format.');
         }
       } catch (error) {
         isGenerating = false;
         updateUI();
-        showNotification('Error starting generation: ' + error.message, 'error');
+        showNotification('Error: ' + error.message, 'error');
         console.error('Submit error:', error);
       }
     }
