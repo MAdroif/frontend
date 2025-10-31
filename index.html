@@ -362,7 +362,7 @@
           const response = await fetch(STATUS_WEBHOOK, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ job_id: jobId })
+            body: JSON.stringify({ jobId: jobId })
           });
           
           const data = await response.json();
