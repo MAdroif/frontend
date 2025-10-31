@@ -348,41 +348,47 @@
 
     async function pollStatus(jobId, script) {
       let attempts = 0;
-      const maxAttempts = 100;
+      const maxAttempts = 50; // Kurangi dari 100 ke 50
       
       async function poll() {
         if (attempts >= maxAttempts) {
           isGenerating = false;
           updateUI();
-          showNotification('Generation timeout. Please try again.', 'error');
+          showNotification('Generation timeout after ' + maxAttempts + ' attempts. Please try again.', 'error');
           return;
         }
         
+        attempts++; // Pindahkan increments ke sini
+        
         try {
-          console.log('Polling status for job:', jobId);
+          console.log(`Polling attempt ${attempts}/${maxAttempts} for job:`, jobId);
           
-          const response = await fetch(STATUS_WEBHOOK, {
-            method: 'POST',
+          // Coba dengan method GET dulu untuk testing
+          const response = await fetch(STATUS_WEBHOOK + '?job_id=' + encodeURIComponent(jobId), {
+            method: 'GET',
             headers: { 
               'Content-Type': 'application/json',
               'Accept': 'application/json'
-            },
-            body: JSON.stringify({ job_id: jobId })
+            }
           });
+          
+          console.log('Polling response status:', response.status);
           
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           
           const data = await response.json();
-          console.log('Polling response:', data);
+          console.log('Polling response data:', data);
           
-          if (data.progress) {
+          // Update progress jika ada
+          if (data.progress !== undefined) {
             document.getElementById('progress-percent').textContent = data.progress;
             document.getElementById('progress-bar').style.width = data.progress + '%';
           }
           
-          if (data.status === 'completed' || data.status === 'COMPLETED') {
+          // Handle berbagai format status
+          if (data.status === 'completed' || data.status === 'COMPLETED' || data.status === 'finished') {
             isGenerating = false;
             updateUI();
             
@@ -403,31 +409,51 @@
             showNotification('Slides generated successfully!', 'success');
             document.getElementById('script-input').value = '';
             document.getElementById('progress-bar').style.width = '0%';
-          } else if (data.status === 'failed' || data.status === 'Failed') {
+            
+            console.log('Polling completed successfully');
+            
+          } else if (data.status === 'failed' || data.status === 'Failed' || data.status === 'error') {
             isGenerating = false;
             updateUI();
-            showNotification('Generation failed. Please try again.', 'error');
+            showNotification('Generation failed: ' + (data.message || 'Unknown error'), 'error');
+            
           } else {
-            attempts++;
-            setTimeout(poll, 3000);
+            // Status masih processing, continue polling
+            console.log('Job still processing, status:', data.status);
+            
+            // Beri delay sebelum polling berikutnya
+            const delay = Math.min(3000 + (attempts * 500), 10000); // Max 10 detik
+            setTimeout(poll, delay);
           }
-        } catch (error) {
-          console.error('Polling error:', error);
-          isGenerating = false;
-          updateUI();
           
+        } catch (error) {
+          console.error(`Polling error attempt ${attempts}:`, error);
+          
+          // Handle network errors specifically
           if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-            showNotification('Network error during polling. Retrying...', 'error');
-            attempts++;
+            showNotification(`Network error (attempt ${attempts}/${maxAttempts}). Retrying...`, 'error');
+            
+            // Exponential backoff untuk network errors
+            const backoffDelay = Math.min(2000 * Math.pow(1.5, attempts), 30000); // Max 30 detik
+            
             if (attempts < maxAttempts) {
-              setTimeout(poll, 3000);
+              console.log(`Retrying in ${backoffDelay}ms...`);
+              setTimeout(poll, backoffDelay);
+            } else {
+              isGenerating = false;
+              updateUI();
+              showNotification('Maximum retry attempts reached. Please check your connection and try again.', 'error');
             }
           } else {
-            showNotification('Error checking status: ' + error.message, 'error');
+            // Other errors
+            isGenerating = false;
+            updateUI();
+            showNotification('Polling error: ' + error.message, 'error');
           }
         }
       }
       
+      // Start polling
       poll();
     }
 
