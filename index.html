@@ -433,8 +433,20 @@
               }
       
               // Di dalam checkJobStatus - ketika status === 'COMPLETED'
+              // if (jobData.status === 'COMPLETED' && jobData.slides && Array.isArray(jobData.slides) && jobData.slides.length > 0) {
+              // DALAM checkJobStatus(), TAMBAHKAN reset progress ketika completed:
               if (jobData.status === 'COMPLETED' && jobData.slides && Array.isArray(jobData.slides) && jobData.slides.length > 0) {
+                clearInterval(pollingInterval);
+                isGenerating = false;
+                updateUI();
                 
+                // RESET PROGRESS BAR
+                document.getElementById('progress-bar').style.width = '0%';
+                document.getElementById('progress-percent').textContent = '0%';
+                document.getElementById('progress-container').classList.add('hidden');
+                
+                // ... rest of the code
+               
                 // SUCCESS - Job completed
                 clearInterval(pollingInterval);
                 isGenerating = false;
@@ -524,21 +536,24 @@
           
           const placeholderImgUrl = `https://placehold.co/600x600/1D4ED8/ffffff?text=Slide+${index + 1}+Loading...`;
           
+          // DALAM function displaySlides(), GANTI bagian image:
           const img = document.createElement('img');
+          // Set placeholder dulu
           img.src = placeholderImgUrl;
           img.alt = `Slide ${index + 1}`;
-          img.className = 'slide-image w-full h-48 object-cover opacity-0';
+          img.className = 'slide-image w-full h-48 object-cover';
           
           // Load actual image
-          img.onload = () => {
+          const actualImage = new Image();
+          actualImage.onload = () => {
             img.src = slide.download_url || slide.url;
             img.classList.add('opacity-100');
           };
-          
-          img.onerror = () => {
+          actualImage.onerror = () => {
             img.src = `https://placehold.co/600x600/EF4444/ffffff?text=Error+Loading+Slide+${index + 1}`;
             img.classList.add('opacity-100');
           };
+          actualImage.src = slide.download_url || slide.url;
           
           // Download button
           const downloadBtn = document.createElement('button');
@@ -595,10 +610,20 @@
       }
       
       // === FUNGSI UNTUK MENAMPILKAN SLIDE DARI HISTORY ===
-      function displaySlideFromHistory(slides) {
-        if (slides && slides.length > 0) {
-          displaySlides(slides);
-        }
+      // GANTI dengan ini:
+      function displaySlideFromHistory(historyItem) {
+        if (!historyItem || !historyItem.slides) return;
+        
+        // Show results section
+        const mainContent = document.querySelector('.flex-1.flex');
+        const resultsSection = document.getElementById('results-section');
+        
+        mainContent.classList.add('hidden');
+        resultsSection.classList.remove('hidden');
+        resultsSection.classList.add('slide-up');
+        
+        // Display slides
+        displaySlides(historyItem.slides);
       }
 
       // === FUNGSI UI YANG TETAP SAMA ===
@@ -665,6 +690,7 @@
         }, 4000);
       }
   
+      // GANTI bagian renderHistory():
       function renderHistory() {
         const container = document.getElementById('history-container');
         
@@ -683,7 +709,7 @@
                 <h3 class="text-sm font-semibold mb-2 text-gray-600 dark:text-gray-400">${period}</h3>
                 <div class="space-y-2">
                   ${items.map(item => `
-                    <div onclick="displaySlideFromHistory(${JSON.stringify(item.slides).replace(/"/g, '&quot;')})" 
+                    <div onclick="loadHistoryItem(${item.id})" 
                          class="p-2 rounded-lg cursor-pointer hover:bg-gray-900 hover:bg-opacity-10 dark:hover:bg-white dark:hover:bg-opacity-10 transition-colors">
                       <p class="text-sm truncate text-gray-700 dark:text-gray-300">${item.script}</p>
                       <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${item.slides?.length || 0} slides • ${new Date(item.timestamp).toLocaleDateString()}</p>
@@ -697,7 +723,31 @@
       
         container.innerHTML = html;
       }
-  
+      
+      // TAMBAHKAN function baru:
+      function loadHistoryItem(historyId) {
+        const historyItem = history.find(item => item.id === historyId);
+        if (historyItem) {
+          displaySlideFromHistory(historyItem);
+        }
+      }
+
+      // Atau jika ingin toggle khusus history:
+      function toggleHistory() {
+        const sidebar = document.getElementById('sidebar');
+        const isHidden = sidebar.style.transform === 'translateX(-100%)';
+        
+        if (isHidden) {
+          sidebar.style.transform = 'translateX(0)';
+          if (window.innerWidth >= 1024) {
+            document.getElementById('main-content').style.marginLeft = '16rem';
+          }
+        } else {
+          sidebar.style.transform = 'translateX(-100%)';
+          document.getElementById('main-content').style.marginLeft = '0';
+        }
+      }
+
       function groupHistoryByDate(items) {
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
