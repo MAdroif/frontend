@@ -267,23 +267,134 @@
     </main>
   </div>
 
-    <script>
-      // ==================== WEBHOOK URL ====================
-      const SUBMIT_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/v5';
-      const STATUS_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/pollingv5';
-  
-      let isGenerating = false;
-      let sidebarOpen = true;
-      let darkMode = localStorage.getItem('darkMode') === 'true';
-      if (localStorage.getItem('darkMode') === null) {
-        darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  <script>
+    // ==================== CONSTANTS ====================
+    const SUBMIT_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/v5';
+    const STATUS_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/pollingv5';
+    const MAX_RETRIES = 3;
+    const INITIAL_POLL_INTERVAL = 5000; // 5 seconds
+    const MAX_POLL_ATTEMPTS = 60; // 5 minutes total (60 × 5s)
+    const MAX_CONSECUTIVE_ERRORS = 3;
+    const MAX_HISTORY_ITEMS = 50;
+
+    // ==================== APP STATE ====================
+    class AppState {
+      constructor() {
+        this.isGenerating = false;
+        this.currentJobId = null;
+        this.pollingInterval = null;
+        this.pollAttempts = 0;
+        this.consecutiveErrors = 0;
+        this.pollingStartTime = null;
+        this.sidebarOpen = true;
+        this.darkMode = this.loadDarkMode();
+        this.history = this.loadHistory();
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => this.cleanup());
       }
-      let history = JSON.parse(localStorage.getItem('slideHistory') || '[]');
-      let pollingInterval = null;
-      const POLLING_RATE_SECONDS = 5;
-  
-      // Initialize
-      if (darkMode) {
+      
+      loadDarkMode() {
+        const stored = localStorage.getItem('darkMode');
+        if (stored !== null) {
+          return stored === 'true';
+        }
+        return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      }
+      
+      loadHistory() {
+        try {
+          const stored = localStorage.getItem('slideHistory');
+          const parsed = JSON.parse(stored || '[]');
+          
+          if (!Array.isArray(parsed)) {
+            console.warn('Invalid history format, resetting');
+            return [];
+          }
+          
+          // Limit size to prevent overflow
+          return parsed.slice(0, MAX_HISTORY_ITEMS);
+        } catch (e) {
+          console.error('Failed to load history:', e);
+          return [];
+        }
+      }
+      
+      saveHistory() {
+        try {
+          localStorage.setItem('slideHistory', JSON.stringify(this.history));
+        } catch (e) {
+          if (e.name === 'QuotaExceededError') {
+            console.warn('LocalStorage quota exceeded, trimming history');
+            // Keep only recent 20 items
+            this.history = this.history.slice(0, 20);
+            try {
+              localStorage.setItem('slideHistory', JSON.stringify(this.history));
+            } catch (retryError) {
+              console.error('Failed to save even after trimming:', retryError);
+            }
+          } else {
+            console.error('Failed to save history:', e);
+          }
+        }
+      }
+      
+      startGeneration(jobId) {
+        if (this.isGenerating) {
+          throw new Error('Generation already in progress');
+        }
+        this.isGenerating = true;
+        this.currentJobId = jobId;
+        this.pollAttempts = 0;
+        this.consecutiveErrors = 0;
+        this.pollingStartTime = Date.now();
+      }
+      
+      stopGeneration() {
+        this.isGenerating = false;
+        this.currentJobId = null;
+        this.pollAttempts = 0;
+        this.consecutiveErrors = 0;
+        this.pollingStartTime = null;
+        if (this.pollingInterval) {
+          clearInterval(this.pollingInterval);
+          this.pollingInterval = null;
+        }
+      }
+      
+      addToHistory(newItem) {
+        // Check for duplicates by jobId
+        const existingIndex = this.history.findIndex(
+          item => item.jobId === newItem.jobId
+        );
+        
+        if (existingIndex !== -1) {
+          // Update existing item
+          this.history[existingIndex] = newItem;
+        } else {
+          // Add new item at the beginning
+          this.history.unshift(newItem);
+        }
+        
+        // Limit size
+        if (this.history.length > MAX_HISTORY_ITEMS) {
+          this.history = this.history.slice(0, MAX_HISTORY_ITEMS);
+        }
+        
+        this.saveHistory();
+      }
+      
+      cleanup() {
+        this.stopGeneration();
+      }
+    }
+
+    const appState = new AppState();
+
+    // ==================== INITIALIZE ====================
+    function initialize() {
+      // Initialize dark mode
+      if (appState.darkMode) {
         document.documentElement.classList.add('dark');
         document.getElementById('sun-icon').classList.remove('hidden');
         document.getElementById('moon-icon').classList.add('hidden');
@@ -293,527 +404,573 @@
         document.getElementById('moon-icon').classList.remove('hidden');
       }
       
-      sidebarOpen = false;
+      // Initialize sidebar (closed by default on mobile)
+      appState.sidebarOpen = false;
       document.getElementById('sidebar').style.transform = 'translateX(-100%)';
       document.getElementById('main-content').style.marginLeft = '0';
       
+      // Render history
       renderHistory();
-  
-      // === FUNGSI UTILITY DARI 1Index.html YANG WORK ===
-      async function retryFetch(url, options = {}, maxRetries = 3) {
-          for (let i = 0; i < maxRetries; i++) {
-              try {
-                  const response = await fetch(url, options);
-                  if (response.ok) {
-                      return response;
-                  }
-                  if (i === maxRetries - 1) {
-                       throw new Error(`Request failed with status ${response.status}`);
-                  }
-              } catch (error) {
-                  if (error instanceof TypeError && i < maxRetries - 1) {
-                      const delay = Math.pow(2, i) * 1000;
-                      console.warn(`[Retry] Failed to fetch ${url}. Retrying in ${delay}ms...`);
-                      await new Promise(resolve => setTimeout(resolve, delay));
-                      continue;
-                  }
-                  throw error;
-              }
+    }
+
+    // ==================== UTILITY FUNCTIONS ====================
+    async function retryFetch(url, options = {}, maxRetries = MAX_RETRIES) {
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const response = await fetch(url, options);
+          if (response.ok) {
+            return response;
           }
-          throw new Error('Failed after multiple retries');
+          if (i === maxRetries - 1) {
+            throw new Error(`Request failed with status ${response.status}`);
+          }
+        } catch (error) {
+          if (error instanceof TypeError && i < maxRetries - 1) {
+            const delay = Math.pow(2, i) * 1000;
+            console.warn(`[Retry ${i + 1}/${maxRetries}] Failed to fetch ${url}. Retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+          throw error;
+        }
       }
-  
-      function toggleSettings() {
-          const dropdown = document.getElementById('settings-dropdown');
-          dropdown.classList.toggle('hidden');
+      throw new Error('Failed after multiple retries');
+    }
+
+    function parseJobResponse(data) {
+      // Normalize response format
+      let jobData = null;
+      
+      if (Array.isArray(data)) {
+        if (data.length === 0) {
+          // Empty array means job not ready yet
+          return null;
+        }
+        jobData = data[0];
+      } else if (data && typeof data === 'object') {
+        jobData = data;
+      } else {
+        throw new Error('Invalid response format: ' + JSON.stringify(data));
       }
-  
-      // === FUNGSI GENERATE YANG WORK ===
-      async function handleGenerate() {
-          const script = document.getElementById('script-input').value.trim();
-          if (!script) return;
+      
+      // Validate required fields
+      if (!jobData.status) {
+        throw new Error('Missing status field in response');
+      }
+      
+      // Validate status values
+      const validStatuses = ['PENDING', 'PROCESSING', 'COMPLETED', 'Failed', 'FAILED'];
+      if (!validStatuses.includes(jobData.status)) {
+        console.warn('Unknown status:', jobData.status);
+      }
+      
+      return jobData;
+    }
+
+    // ==================== UI FUNCTIONS ====================
+    function syncUIWithState() {
+      const sendBtn = document.getElementById('send-btn');
+      const sendIcon = document.getElementById('send-icon');
+      const loaderIcon = document.getElementById('loader-icon');
+      const progressContainer = document.getElementById('progress-container');
+      const progressBar = document.getElementById('progress-bar');
+      const progressPercent = document.getElementById('progress-percent');
+      
+      if (appState.isGenerating) {
+        // Generating state
+        sendBtn.disabled = true;
+        sendBtn.classList.remove('neon-blue', 'hover:bg-blue-700');
+        sendBtn.classList.add('bg-gray-500', 'cursor-not-allowed');
+        sendIcon.classList.add('hidden');
+        loaderIcon.classList.remove('hidden');
+        progressContainer.classList.remove('hidden');
+      } else {
+        // Idle state - RESET EVERYTHING
+        sendBtn.disabled = false;
+        sendBtn.classList.add('neon-blue');
+        sendBtn.classList.remove('bg-gray-500', 'cursor-not-allowed');
+        sendIcon.classList.remove('hidden');
+        loaderIcon.classList.add('hidden');
+        progressContainer.classList.add('hidden');
+        progressBar.style.width = '0%';
+        progressPercent.textContent = '0%';
+      }
+    }
+
+    function toggleSettings() {
+      const dropdown = document.getElementById('settings-dropdown');
+      dropdown.classList.toggle('hidden');
+    }
+
+    function toggleSidebar() {
+      appState.sidebarOpen = !appState.sidebarOpen;
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('main-content');
+      
+      if (appState.sidebarOpen) {
+        sidebar.style.transform = 'translateX(0)';
+        if (window.innerWidth >= 1024) {
+          mainContent.style.marginLeft = '16rem';
+        }
+      } else {
+        sidebar.style.transform = 'translateX(-100%)';
+        mainContent.style.marginLeft = '0';
+      }
+    }
+
+    function toggleDarkMode() {
+      appState.darkMode = !appState.darkMode;
+      localStorage.setItem('darkMode', appState.darkMode);
+      
+      if (appState.darkMode) {
+        document.documentElement.classList.add('dark');
+        document.getElementById('sun-icon').classList.remove('hidden');
+        document.getElementById('moon-icon').classList.add('hidden');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.getElementById('sun-icon').classList.add('hidden');
+        document.getElementById('moon-icon').classList.remove('hidden');
+      }
+    }
+
+    function toggleHistory() {
+      const sidebar = document.getElementById('sidebar');
+      const isHidden = sidebar.style.transform === 'translateX(-100%)';
+      
+      if (isHidden) {
+        sidebar.style.transform = 'translateX(0)';
+        if (window.innerWidth >= 1024) {
+          document.getElementById('main-content').style.marginLeft = '16rem';
+        }
+      } else {
+        sidebar.style.transform = 'translateX(-100%)';
+        document.getElementById('main-content').style.marginLeft = '0';
+      }
+    }
+
+    function showNotification(message, type = 'info') {
+      const notification = document.getElementById('notification');
+      notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 text-white animate-fade-in ${
+        type === 'success' ? 'bg-green-500' : 
+        type === 'error' ? 'bg-red-500' : 
+        type === 'warning' ? 'bg-yellow-500' :
+        'bg-blue-500'
+      }`;
+      
+      const icon = type === 'success' 
+        ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
+        : type === 'error'
+        ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>'
+        : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+      
+      notification.innerHTML = icon + '<span>' + message + '</span>';
+      notification.classList.remove('hidden');
+      
+      setTimeout(() => {
+        notification.classList.add('hidden');
+      }, 4000);
+    }
+
+    // ==================== GENERATION LOGIC ====================
+    async function handleGenerate() {
+      const script = document.getElementById('script-input').value.trim();
+      
+      if (!script) {
+        showNotification('Please enter a presentation description', 'warning');
+        return;
+      }
+      
+      // CRITICAL: Prevent concurrent generations
+      if (appState.isGenerating) {
+        showNotification('Please wait for current generation to complete', 'warning');
+        return;
+      }
+      
+      // Show results section, hide welcome
+      const mainContent = document.querySelector('.flex-1.flex');
+      const resultsSection = document.getElementById('results-section');
+      mainContent.classList.add('hidden');
+      resultsSection.classList.remove('hidden');
+      resultsSection.classList.add('slide-up');
+      
+      // Clear previous slides
+      document.getElementById('slides-container').innerHTML = '';
+      
+      showNotification('Sending request to n8n...', 'info');
+
+      const payload = {
+        pesan: script,
+        creator_name: document.getElementById('creator-name').value || '',
+        template_style: document.getElementById('template').value,
+        tone_of_voice: document.getElementById('voice-tone').value
+      };
+      
+      console.log('Sending payload:', payload);
+
+      try {
+        // Trigger job submission
+        const response = await retryFetch(SUBMIT_WEBHOOK, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        let data;
+        try {
+          data = await response.json();
+        } catch (e) {
+          throw new Error(`Failed to parse response. Status: ${response.status}`);
+        }
+
+        if (!response.ok) {
+          let errorDetails = data.message || JSON.stringify(data) || `Status: ${response.status}`;
+          throw new Error(`HTTP Error: ${errorDetails}`);
+        }
+        
+        // Get jobId - support both formats
+        const jobId = data.jobId || data.job_id;
+        
+        if (!jobId) {
+          console.error('Invalid response:', data);
+          throw new Error('No job ID received. Response: ' + JSON.stringify(data));
+        }
+
+        // Start generation state
+        appState.startGeneration(jobId);
+        syncUIWithState();
+        
+        showNotification('Generation started!', 'info');
+        
+        // Start polling
+        await checkJobStatus(jobId, script);
+        appState.pollingInterval = setInterval(() => checkJobStatus(jobId, script), INITIAL_POLL_INTERVAL);
+
+      } catch (error) {
+        console.error('Generation error:', error);
+        appState.stopGeneration();
+        syncUIWithState();
+        
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+          showNotification('Network error. Check connection and CORS settings.', 'error');
+        } else {
+          showNotification('Error: ' + error.message, 'error');
+        }
+      }
+    }
+
+    // ==================== POLLING LOGIC ====================
+    async function checkJobStatus(jobId, script) {
+      try {
+        appState.pollAttempts++;
+        
+        // Check timeout
+        const elapsedTime = Date.now() - appState.pollingStartTime;
+        const maxPollTime = MAX_POLL_ATTEMPTS * INITIAL_POLL_INTERVAL;
+        
+        if (appState.pollAttempts > MAX_POLL_ATTEMPTS || elapsedTime > maxPollTime) {
+          appState.stopGeneration();
+          syncUIWithState();
+          showNotification('Generation timeout. The process took too long. Please try again.', 'error');
+          return;
+        }
+        
+        console.log(`Polling attempt ${appState.pollAttempts}/${MAX_POLL_ATTEMPTS} for job: ${jobId}`);
+        
+        // Fetch job status
+        const response = await retryFetch(`${STATUS_WEBHOOK}?jobId=${encodeURIComponent(jobId)}`);
+        const data = await response.json();
+        
+        // Parse response
+        const jobData = parseJobResponse(data);
+        
+        if (!jobData) {
+          // Job not ready yet
+          console.log('Job not available yet, waiting...');
+          appState.consecutiveErrors = 0; // Reset error count on successful fetch
+          return;
+        }
+
+        if (!jobData.status) {
+          throw new Error('Invalid polling response: missing status field');
+        }
+
+        // Reset consecutive errors on successful response
+        appState.consecutiveErrors = 0;
+
+        // Handle different statuses
+        if (jobData.status === 'COMPLETED' && jobData.slides && Array.isArray(jobData.slides) && jobData.slides.length > 0) {
+          // SUCCESS
+          appState.stopGeneration();
+          syncUIWithState();
           
-          isGenerating = true;
-          updateUI();
-          
-          // Sembunyikan main content, tampilkan results
-          const mainContent = document.querySelector('.flex-1.flex');
-          const resultsSection = document.getElementById('results-section');
-          
-          mainContent.classList.add('hidden');
-          resultsSection.classList.remove('hidden');
-          resultsSection.classList.add('slide-up');
-          
-          // Clear previous polling
-          if (pollingInterval) clearInterval(pollingInterval);
-          
-          showNotification('Sending request to n8n...', 'info');
-  
-          // Payload sesuai format yang work di 1Index.html
-          const payload = {
-              pesan: script,
-              creator_name: document.getElementById('creator-name').value || '',
-              template_style: document.getElementById('template').value,
-              tone_of_voice: document.getElementById('voice-tone').value
+          // Save to history
+          const newItem = {
+            id: Date.now(),
+            script: script.substring(0, 100) + (script.length > 100 ? '...' : ''),
+            slides: jobData.slides || [],
+            creatorName: document.getElementById('creator-name').value,
+            template: document.getElementById('template').value,
+            timestamp: new Date().toISOString(),
+            jobId
           };
           
-          console.log('Sending payload:', payload);
-  
-          try {
-              // === A. Trigger Job ===
-              const response = await retryFetch(SUBMIT_WEBHOOK, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(payload)
-              });
-              
-              let data;
-              try {
-                  data = await response.json();
-              } catch (e) {
-                  throw new Error(`Failed to parse response. Status: ${response.status}`);
-              }
-  
-              if (!response.ok) {
-                  let errorDetails = data.message || JSON.stringify(data) || `Status: ${response.status}`;
-                  throw new Error(`HTTP Error: ${errorDetails}`);
-              }
-              
-              // Get jobId - support both formats
-              const jobId = data.jobId || data.job_id;
-              const status = data.status;
-              
-              if (!jobId) {
-                  console.error('Invalid response:', data);
-                  throw new Error('No job ID received. Response: ' + JSON.stringify(data));
-              }
-  
-              showNotification('Generation started!', 'info');
-              
-              // === B. Start Polling ===
-              await checkJobStatus(jobId, script);
-              pollingInterval = setInterval(() => checkJobStatus(jobId, script), POLLING_RATE_SECONDS * 1000);
-  
-          } catch (error) {
-              console.error('Generation error:', error);
-              isGenerating = false;
-              updateUI();
-              
-              if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-                  showNotification('Network error. Check connection and CORS settings.', 'error');
-              } else {
-                  showNotification('Error: ' + error.message, 'error');
-              }
+          appState.addToHistory(newItem);
+          renderHistory();
+          
+          // Display slides
+          displaySlides(jobData.slides);
+          
+          showNotification(`Successfully generated ${jobData.slides.length} slides!`, 'success');
+          document.getElementById('script-input').value = '';
+          
+          console.log('Generation completed successfully');
+          
+        } else if (jobData.status === 'Failed' || jobData.status === 'FAILED') {
+          // FAILED
+          appState.stopGeneration();
+          syncUIWithState();
+          const errorMsg = jobData.error || jobData.message || 'Unknown error';
+          throw new Error('Generation failed: ' + errorMsg);
+
+        } else {
+          // STILL PROCESSING
+          console.log('Job still processing, status:', jobData.status);
+          
+          // Update progress if available
+          if (jobData.progress !== undefined) {
+            const progress = Math.min(Math.max(parseInt(jobData.progress), 0), 100);
+            document.getElementById('progress-percent').textContent = progress + '%';
+            document.getElementById('progress-bar').style.width = progress + '%';
+          } else {
+            // Estimate progress based on poll attempts
+            const estimatedProgress = Math.min((appState.pollAttempts / MAX_POLL_ATTEMPTS) * 90, 90);
+            document.getElementById('progress-percent').textContent = Math.round(estimatedProgress) + '%';
+            document.getElementById('progress-bar').style.width = estimatedProgress + '%';
           }
+        }
+      } catch (error) {
+        console.error('Polling error:', error);
+        appState.consecutiveErrors++;
+        
+        // Stop polling if too many consecutive errors
+        if (appState.consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+          appState.stopGeneration();
+          syncUIWithState();
+          showNotification('Multiple polling failures. Please check your connection and try again.', 'error');
+          return;
+        }
+        
+        // For network errors, continue polling (might be temporary)
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+          console.log('Network error during polling, will retry... (' + appState.consecutiveErrors + '/' + MAX_CONSECUTIVE_ERRORS + ')');
+        } else {
+          // For other errors, show notification but continue
+          console.warn('Polling error (continuing):', error.message);
+        }
       }
-  
-      // === POLLING FUNCTION YANG WORK ===
-      async function checkJobStatus(jobId, script) {
-          try {
-              console.log(`Checking job status: ${jobId}`);
-              
-              // Use GET method like in 1Index.html
-              const response = await retryFetch(`${STATUS_WEBHOOK}?jobId=${encodeURIComponent(jobId)}`);
-              const data = await response.json();
-              
-              // Flexible response handling
-              let jobData = null;
-              
-              if (Array.isArray(data) && data.length > 0) {
-                  jobData = data[0];
-              } else if (data && typeof data === 'object') {
-                  jobData = data;
-              } else if (data === null || data === undefined) {
-                  console.log('Job not available yet, waiting...');
-                  return;
-              }
+    }
+
+    // ==================== DISPLAY FUNCTIONS ====================
+    function displaySlides(slides) {
+      const slidesContainer = document.getElementById('slides-container');
       
-              if (!jobData || !jobData.status) {
-                  throw new Error('Invalid polling response: ' + JSON.stringify(data));
-              }
+      if (!slides || slides.length === 0) {
+        slidesContainer.innerHTML = `
+          <div class="col-span-full text-center py-8">
+            <p class="text-gray-500 dark:text-gray-400">No slides generated yet</p>
+          </div>
+        `;
+        return;
+      }
       
-              // Di dalam checkJobStatus - ketika status === 'COMPLETED'
-              // if (jobData.status === 'COMPLETED' && jobData.slides && Array.isArray(jobData.slides) && jobData.slides.length > 0) {
-              // DALAM checkJobStatus(), TAMBAHKAN reset progress ketika completed:
-              if (jobData.status === 'COMPLETED' && jobData.slides && Array.isArray(jobData.slides) && jobData.slides.length > 0) {
-                clearInterval(pollingInterval);
-                isGenerating = false;
-                updateUI();
-                
-                // RESET PROGRESS BAR
-                document.getElementById('progress-bar').style.width = '0%';
-                document.getElementById('progress-percent').textContent = '0%';
-                document.getElementById('progress-container').classList.add('hidden');
-                
-                // ... rest of the code
-               
-                // SUCCESS - Job completed
-                clearInterval(pollingInterval);
-                isGenerating = false;
-                updateUI();
-                
-                // Save to history
-                const newItem = {
-                  id: Date.now(),
-                  script: script.substring(0, 100) + '...',
-                  slides: jobData.slides || [],
-                  creatorName: document.getElementById('creator-name').value,
-                  template: document.getElementById('template').value,
-                  timestamp: new Date().toISOString(),
-                  jobId
-                };
-                
-                history.unshift(newItem);
-                localStorage.setItem('slideHistory', JSON.stringify(history));
-                renderHistory();
-                
-                // TAMPILKAN SLIDES DI UI
-                displaySlides(jobData.slides);
-                
-                showNotification(`Successfully generated ${jobData.slides.length} slides!`, 'success');
-                document.getElementById('script-input').value = '';
-                document.getElementById('progress-bar').style.width = '0%';
-                
-                console.log('Generation completed successfully');
-                  
-              } else if (jobData.status === 'Failed') {
-                  
-                  // FAILED
-                  clearInterval(pollingInterval);
-                  isGenerating = false;
-                  updateUI();
-                  throw new Error('Generation failed on n8n/AI side');
+      // Clear previous slides
+      slidesContainer.innerHTML = '';
       
-              } else {
-                  // STILL PROCESSING
-                  console.log('Job still processing, status:', jobData.status);
-                  
-                  // Update progress if available
-                  if (jobData.progress !== undefined) {
-                      document.getElementById('progress-percent').textContent = jobData.progress;
-                      document.getElementById('progress-bar').style.width = jobData.progress + '%';
-                  }
-              }
-          } catch (error) {
-              console.error('Polling error:', error);
-              
-              if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-                  console.log('Network error during polling, will retry...');
-                  // Don't show notification for every network error during polling
-              } else {
-                  showNotification('Polling error: ' + error.message, 'error');
-                  clearInterval(pollingInterval);
-                  isGenerating = false;
-                  updateUI();
-              }
-          }
+      // Create slide cards
+      slides.forEach((slide, index) => {
+        const slideWrapper = document.createElement('div');
+        slideWrapper.className = 'slide-card relative group overflow-hidden rounded-xl shadow-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600';
+        
+        const placeholderImgUrl = `https://placehold.co/600x600/1D4ED8/ffffff?text=Slide+${index + 1}+Loading...`;
+        
+        // Image with lazy loading
+        const img = document.createElement('img');
+        img.src = placeholderImgUrl;
+        img.alt = `Slide ${index + 1}`;
+        img.className = 'slide-image w-full h-48 object-cover';
+        
+        // Load actual image
+        const actualImage = new Image();
+        actualImage.onload = () => {
+          img.src = slide.download_url || slide.url;
+          img.classList.add('opacity-100');
+        };
+        actualImage.onerror = () => {
+          img.src = `https://placehold.co/600x600/EF4444/ffffff?text=Error+Loading+Slide+${index + 1}`;
+          img.classList.add('opacity-100');
+        };
+        actualImage.src = slide.download_url || slide.url;
+        
+        // Download button
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'download-btn absolute bottom-3 right-3 bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 cursor-pointer flex items-center gap-2';
+        downloadBtn.innerHTML = `
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Download
+        `;
+        
+        downloadBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          await downloadSlide(slide.download_url || slide.url, `slide-${index + 1}.jpg`);
+        });
+        
+        // Slide info
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'p-3 bg-white dark:bg-gray-800';
+        infoDiv.innerHTML = `
+          <p class="text-sm font-medium text-gray-900 dark:text-white">Slide ${index + 1}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 truncate">${slide.filename || 'generated-slide'}</p>
+        `;
+        
+        slideWrapper.appendChild(img);
+        slideWrapper.appendChild(downloadBtn);
+        slideWrapper.appendChild(infoDiv);
+        slidesContainer.appendChild(slideWrapper);
+      });
+    }
+
+    async function downloadSlide(url, filename) {
+      try {
+        showNotification('Downloading slide...', 'info');
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`Download failed with status ${response.status}`);
+        }
+        
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        URL.revokeObjectURL(blobUrl);
+        showNotification('Slide downloaded successfully!', 'success');
+      } catch (error) {
+        console.error('Download error:', error);
+        showNotification('Download failed: ' + error.message, 'error');
+      }
+    }
+
+    function displaySlideFromHistory(historyItem) {
+      if (!historyItem || !historyItem.slides) return;
+      
+      // Show results section
+      const mainContent = document.querySelector('.flex-1.flex');
+      const resultsSection = document.getElementById('results-section');
+      
+      mainContent.classList.add('hidden');
+      resultsSection.classList.remove('hidden');
+      resultsSection.classList.add('slide-up');
+      
+      // Display slides
+      displaySlides(historyItem.slides);
+    }
+
+    // ==================== HISTORY FUNCTIONS ====================
+    function renderHistory() {
+      const container = document.getElementById('history-container');
+      
+      if (appState.history.length === 0) {
+        container.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No history yet</p>';
+        return;
       }
 
-      // === FUNGSI UNTUK MENAMPILKAN SLIDES ===
-      function displaySlides(slides) {
-        const slidesContainer = document.getElementById('slides-container');
-        const slidesResults = document.getElementById('slides-results');
-        
-        // Show the results section
-        slidesResults.classList.remove('hidden');
-        
-        // Clear previous slides
-        slidesContainer.innerHTML = '';
-        
-        if (!slides || slides.length === 0) {
-          slidesContainer.innerHTML = `
-            <div class="col-span-full text-center py-8">
-              <p class="text-gray-500 dark:text-gray-400">No slides generated yet</p>
+      const grouped = groupHistoryByDate(appState.history);
+      let html = '';
+
+      for (const [period, items] of Object.entries(grouped)) {
+        if (items.length > 0) {
+          html += `
+            <div>
+              <h3 class="text-sm font-semibold mb-2 text-gray-600 dark:text-gray-400">${period}</h3>
+              <div class="space-y-2">
+                ${items.map(item => `
+                  <div onclick="loadHistoryItem(${item.id})" 
+                       class="p-2 rounded-lg cursor-pointer hover:bg-gray-900 hover:bg-opacity-10 dark:hover:bg-white dark:hover:bg-opacity-10 transition-colors">
+                    <p class="text-sm truncate text-gray-700 dark:text-gray-300">${item.script}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${item.slides?.length || 0} slides • ${new Date(item.timestamp).toLocaleDateString()}</p>
+                  </div>
+                `).join('')}
+              </div>
             </div>
           `;
-          return;
-        }
-        
-        // Create slide cards
-        slides.forEach((slide, index) => {
-          const slideWrapper = document.createElement('div');
-          slideWrapper.className = 'slide-card relative group overflow-hidden rounded-xl shadow-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600';
-          
-          const placeholderImgUrl = `https://placehold.co/600x600/1D4ED8/ffffff?text=Slide+${index + 1}+Loading...`;
-          
-          // DALAM function displaySlides(), GANTI bagian image:
-          const img = document.createElement('img');
-          // Set placeholder dulu
-          img.src = placeholderImgUrl;
-          img.alt = `Slide ${index + 1}`;
-          img.className = 'slide-image w-full h-48 object-cover';
-          
-          // Load actual image
-          const actualImage = new Image();
-          actualImage.onload = () => {
-            img.src = slide.download_url || slide.url;
-            img.classList.add('opacity-100');
-          };
-          actualImage.onerror = () => {
-            img.src = `https://placehold.co/600x600/EF4444/ffffff?text=Error+Loading+Slide+${index + 1}`;
-            img.classList.add('opacity-100');
-          };
-          actualImage.src = slide.download_url || slide.url;
-          
-          // Download button
-          const downloadBtn = document.createElement('button');
-          downloadBtn.className = 'download-btn absolute bottom-3 right-3 bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 cursor-pointer flex items-center gap-2';
-          downloadBtn.innerHTML = `
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            Download
-          `;
-          
-          downloadBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            await downloadSlide(slide.download_url || slide.url, `slide-${index + 1}.jpg`);
-          });
-          
-          // Slide info
-          const infoDiv = document.createElement('div');
-          infoDiv.className = 'p-3 bg-white dark:bg-gray-800';
-          infoDiv.innerHTML = `
-            <p class="text-sm font-medium text-gray-900 dark:text-white">Slide ${index + 1}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">${slide.filename || 'generated-slide'}</p>
-          `;
-          
-          slideWrapper.appendChild(img);
-          slideWrapper.appendChild(downloadBtn);
-          slideWrapper.appendChild(infoDiv);
-          slidesContainer.appendChild(slideWrapper);
-        });
-      }
-      
-      // === FUNGSI DOWNLOAD SLIDE ===
-      async function downloadSlide(url, filename) {
-        try {
-          showNotification('Downloading slide...', 'info');
-          
-          const response = await fetch(url);
-          const blob = await response.blob();
-          const blobUrl = URL.createObjectURL(blob);
-          
-          const link = document.createElement('a');
-          link.href = blobUrl;
-          link.download = filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          
-          URL.revokeObjectURL(blobUrl);
-          showNotification('Slide downloaded successfully!', 'success');
-        } catch (error) {
-          console.error('Download error:', error);
-          showNotification('Download failed: ' + error.message, 'error');
-        }
-      }
-      
-      // === FUNGSI UNTUK MENAMPILKAN SLIDE DARI HISTORY ===
-      // GANTI dengan ini:
-      function displaySlideFromHistory(historyItem) {
-        if (!historyItem || !historyItem.slides) return;
-        
-        // Show results section
-        const mainContent = document.querySelector('.flex-1.flex');
-        const resultsSection = document.getElementById('results-section');
-        
-        mainContent.classList.add('hidden');
-        resultsSection.classList.remove('hidden');
-        resultsSection.classList.add('slide-up');
-        
-        // Display slides
-        displaySlides(historyItem.slides);
-      }
-
-      // === FUNGSI UI YANG TETAP SAMA ===
-      function toggleSidebar() {
-        sidebarOpen = !sidebarOpen;
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('main-content');
-        
-        if (sidebarOpen) {
-          sidebar.style.transform = 'translateX(0)';
-          if (window.innerWidth >= 1024) {
-            mainContent.style.marginLeft = '16rem';
-          }
-        } else {
-          sidebar.style.transform = 'translateX(-100%)';
-          mainContent.style.marginLeft = '0';
-        }
-      }
-  
-      function toggleDarkMode() {
-        darkMode = !darkMode;
-        localStorage.setItem('darkMode', darkMode);
-        
-        if (darkMode) {
-          document.documentElement.classList.add('dark');
-          document.getElementById('sun-icon').classList.remove('hidden');
-          document.getElementById('moon-icon').classList.add('hidden');
-        } else {
-          document.documentElement.classList.remove('dark');
-          document.getElementById('sun-icon').classList.add('hidden');
-          document.getElementById('moon-icon').classList.remove('hidden');
-        }
-      }
-  
-      function toggleAdvanced() {
-        const options = document.getElementById('advanced-options');
-        const chevron = document.getElementById('chevron-icon');
-        
-        if (options.classList.contains('hidden')) {
-          options.classList.remove('hidden');
-          chevron.style.transform = 'rotate(180deg)';
-        } else {
-          options.classList.add('hidden');
-          chevron.style.transform = 'rotate(0deg)';
-        }
-      }
-  
-      function showNotification(message, type = 'info') {
-        const notification = document.getElementById('notification');
-        notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 text-white animate-fade-in ${
-          type === 'success' ? 'bg-green-500' : 
-          type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-        }`;
-        
-        const icon = type === 'success' 
-          ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
-          : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
-        
-        notification.innerHTML = icon + '<span>' + message + '</span>';
-        notification.classList.remove('hidden');
-        
-        setTimeout(() => {
-          notification.classList.add('hidden');
-        }, 4000);
-      }
-  
-      // GANTI bagian renderHistory():
-      function renderHistory() {
-        const container = document.getElementById('history-container');
-        
-        if (history.length === 0) {
-          container.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No history yet</p>';
-          return;
-        }
-      
-        const grouped = groupHistoryByDate(history);
-        let html = '';
-      
-        for (const [period, items] of Object.entries(grouped)) {
-          if (items.length > 0) {
-            html += `
-              <div>
-                <h3 class="text-sm font-semibold mb-2 text-gray-600 dark:text-gray-400">${period}</h3>
-                <div class="space-y-2">
-                  ${items.map(item => `
-                    <div onclick="loadHistoryItem(${item.id})" 
-                         class="p-2 rounded-lg cursor-pointer hover:bg-gray-900 hover:bg-opacity-10 dark:hover:bg-white dark:hover:bg-opacity-10 transition-colors">
-                      <p class="text-sm truncate text-gray-700 dark:text-gray-300">${item.script}</p>
-                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${item.slides?.length || 0} slides • ${new Date(item.timestamp).toLocaleDateString()}</p>
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-            `;
-          }
-        }
-      
-        container.innerHTML = html;
-      }
-      
-      // TAMBAHKAN function baru:
-      function loadHistoryItem(historyId) {
-        const historyItem = history.find(item => item.id === historyId);
-        if (historyItem) {
-          displaySlideFromHistory(historyItem);
         }
       }
 
-      // Atau jika ingin toggle khusus history:
-      function toggleHistory() {
-        const sidebar = document.getElementById('sidebar');
-        const isHidden = sidebar.style.transform === 'translateX(-100%)';
-        
-        if (isHidden) {
-          sidebar.style.transform = 'translateX(0)';
-          if (window.innerWidth >= 1024) {
-            document.getElementById('main-content').style.marginLeft = '16rem';
-          }
-        } else {
-          sidebar.style.transform = 'translateX(-100%)';
-          document.getElementById('main-content').style.marginLeft = '0';
-        }
-      }
+      container.innerHTML = html;
+    }
 
-      function groupHistoryByDate(items) {
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        const threeDaysAgo = new Date(today);
-        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-        const sevenDaysAgo = new Date(today);
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  
-        const groups = {
-          'Today': [],
-          'Yesterday': [],
-          '3 days ago': [],
-          '7 days ago': [],
-          'Last 30 days': []
-        };
-  
-        items.forEach(item => {
-          const itemDate = new Date(item.timestamp);
-          if (itemDate >= today) {
-            groups['Today'].push(item);
-          } else if (itemDate >= yesterday) {
-            groups['Yesterday'].push(item);
-          } else if (itemDate >= threeDaysAgo) {
-            groups['3 days ago'].push(item);
-          } else if (itemDate >= sevenDaysAgo) {
-            groups['7 days ago'].push(item);
-          } else {
-            groups['Last 30 days'].push(item);
-          }
-        });
-  
-        return groups;
+    function loadHistoryItem(historyId) {
+      const historyItem = appState.history.find(item => item.id === historyId);
+      if (historyItem) {
+        displaySlideFromHistory(historyItem);
       }
-  
-      function updateUI() {
-        const sendBtn = document.getElementById('send-btn');
-        const sendIcon = document.getElementById('send-icon');
-        const loaderIcon = document.getElementById('loader-icon');
-        const progressContainer = document.getElementById('progress-container');
-        
-        if (isGenerating) {
-          sendBtn.disabled = true;
-          sendBtn.classList.remove('neon-blue');
-          sendBtn.classList.add('bg-gray-500', 'cursor-not-allowed');
-          sendIcon.classList.add('hidden');
-          loaderIcon.classList.remove('hidden');
-          progressContainer.classList.remove('hidden');
+    }
+
+    function groupHistoryByDate(items) {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const threeDaysAgo = new Date(today);
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      const sevenDaysAgo = new Date(today);
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const groups = {
+        'Today': [],
+        'Yesterday': [],
+        '3 days ago': [],
+        '7 days ago': [],
+        'Last 30 days': []
+      };
+
+      items.forEach(item => {
+        const itemDate = new Date(item.timestamp);
+        if (itemDate >= today) {
+          groups['Today'].push(item);
+        } else if (itemDate >= yesterday) {
+          groups['Yesterday'].push(item);
+        } else if (itemDate >= threeDaysAgo) {
+          groups['3 days ago'].push(item);
+        } else if (itemDate >= sevenDaysAgo) {
+          groups['7 days ago'].push(item);
         } else {
-          sendBtn.disabled = false;
-          sendBtn.classList.add('neon-blue');
-          sendBtn.classList.remove('bg-gray-500', 'cursor-not-allowed');
-          sendIcon.classList.remove('hidden');
-          loaderIcon.classList.add('hidden');
-          progressContainer.classList.add('hidden');
-        }
-      }
-  
-      // Keyboard shortcuts
-      document.getElementById('script-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          handleGenerate();
+          groups['Last 30 days'].push(item);
         }
       });
+
+      return groups;
+    }
+
+    // ==================== EVENT LISTENERS ====================
+    document.getElementById('script-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleGenerate();
+      }
+    });
+
+    // ==================== INITIALIZE APP ====================
+    initialize();
   </script>
 </body>
 </html>
