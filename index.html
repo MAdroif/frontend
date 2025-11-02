@@ -69,6 +69,14 @@
       transition: background-color 0.3s ease;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
+
+    .content-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: calc(500vh - 80px);
+      padding: 2rem 1rem;
+    }
     
     /* Input Field */
     .input-field {
@@ -304,7 +312,7 @@
       <div class="flex-1 overflow--auto p-8">
         
         <!-- Home View -->
-        <div id="home-view" class="animate-fade-in">
+        <div id="home-view" class="content-area animate-fade-in">
           <div class="max-w-2xl mx-auto text-center mt-40">
             
             <!-- Welcome Message -->
