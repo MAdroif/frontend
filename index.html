@@ -361,13 +361,20 @@
               
               <div class="flex items-center gap-3">
                 <!-- Input Field -->
-                <input 
+                <textarea
+                  id="script-input" 
+                  placeholder="Ketik pesan..." 
+                  class="input-field flex-1 px-6 py-3 rounded-xl text-base resize-vertical"
+                  rows="4"
+                  onkeypress="handleKeyPress(event)"
+                ></textarea>
+                <!-- <input 
                   type="text" 
                   id="script-input" 
                   placeholder="Ketik pesan..." 
                   class="input-field flex-1 px-6 py-3 rounded-full text-base"
                   onkeypress="handleKeyPress(event)"
-                >
+                > -->
                 
                 <!-- Send Button -->
                 <button onclick="handleGenerate()" id="send-btn" class="btn-send w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-white">
