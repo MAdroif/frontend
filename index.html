@@ -631,90 +631,6 @@
         return window.matchMedia('(prefers-color-scheme: dark)').matches;
       }
 
-      // ==================== MODAL PREVIEW FUNCTIONS ====================
-      let currentPreviewIndex = 0;
-      let currentPreviewSlides = [];
-      
-      function openPreview(slides, startIndex = 0) {
-        currentPreviewSlides = slides;
-        currentPreviewIndex = startIndex;
-        
-        const modal = document.getElementById('preview-modal');
-        const previewImage = document.getElementById('preview-image');
-        const currentSlide = document.getElementById('current-slide');
-        const totalSlides = document.getElementById('total-slides');
-        
-        if (slides.length > 0 && slides[startIndex]) {
-          previewImage.src = slides[startIndex].download_url || slides[startIndex].url;
-          currentSlide.textContent = startIndex + 1;
-          totalSlides.textContent = slides.length;
-        }
-        
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden'; // Prevent scrolling
-      }
-      
-      function closePreview() {
-        const modal = document.getElementById('preview-modal');
-        modal.classList.add('hidden');
-        document.body.style.overflow = ''; // Restore scrolling
-        currentPreviewSlides = [];
-        currentPreviewIndex = 0;
-      }
-      
-      function prevSlide() {
-        if (currentPreviewSlides.length === 0) return;
-        
-        currentPreviewIndex = (currentPreviewIndex - 1 + currentPreviewSlides.length) % currentPreviewSlides.length;
-        updatePreviewImage();
-      }
-      
-      function nextSlide() {
-        if (currentPreviewSlides.length === 0) return;
-        
-        currentPreviewIndex = (currentPreviewIndex + 1) % currentPreviewSlides.length;
-        updatePreviewImage();
-      }
-      
-      function updatePreviewImage() {
-        const previewImage = document.getElementById('preview-image');
-        const currentSlide = document.getElementById('current-slide');
-        
-        if (currentPreviewSlides[currentPreviewIndex]) {
-          previewImage.src = currentPreviewSlides[currentPreviewIndex].download_url || currentPreviewSlides[currentPreviewIndex].url;
-          currentSlide.textContent = currentPreviewIndex + 1;
-          
-          // Add loading state
-          previewImage.style.opacity = '0.7';
-          const tempImage = new Image();
-          tempImage.onload = () => {
-            previewImage.style.opacity = '1';
-          };
-          tempImage.src = previewImage.src;
-        }
-      }
-      
-      // Close modal when clicking outside the image
-      document.getElementById('preview-modal').addEventListener('click', function(e) {
-        if (e.target === this) {
-          closePreview();
-        }
-      });
-      
-      // Keyboard navigation
-      document.addEventListener('keydown', function(e) {
-        const modal = document.getElementById('preview-modal');
-        if (!modal.classList.contains('hidden')) {
-          if (e.key === 'Escape') {
-            closePreview();
-          } else if (e.key === 'ArrowLeft') {
-            prevSlide();
-          } else if (e.key === 'ArrowRight') {
-            nextSlide();
-          }
-        }
-      });
-
       loadHistory() {
         try {
           const stored = localStorage.getItem('slideHistory');
@@ -798,6 +714,89 @@
 
     const appState = new AppState();
 
+    // ==================== MODAL PREVIEW FUNCTIONS ====================
+    let currentPreviewIndex = 0;
+    let currentPreviewSlides = [];
+    
+    function openPreview(slides, startIndex = 0) {
+      currentPreviewSlides = slides;
+      currentPreviewIndex = startIndex;
+      
+      const modal = document.getElementById('preview-modal');
+      const previewImage = document.getElementById('preview-image');
+      const currentSlide = document.getElementById('current-slide');
+      const totalSlides = document.getElementById('total-slides');
+      
+      if (slides.length > 0 && slides[startIndex]) {
+        previewImage.src = slides[startIndex].download_url || slides[startIndex].url;
+        currentSlide.textContent = startIndex + 1;
+        totalSlides.textContent = slides.length;
+      }
+      
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden'; // Prevent scrolling
+    }
+    
+    function closePreview() {
+      const modal = document.getElementById('preview-modal');
+      modal.classList.add('hidden');
+      document.body.style.overflow = ''; // Restore scrolling
+      currentPreviewSlides = [];
+      currentPreviewIndex = 0;
+    }
+    
+    function prevSlide() {
+      if (currentPreviewSlides.length === 0) return;
+      
+      currentPreviewIndex = (currentPreviewIndex - 1 + currentPreviewSlides.length) % currentPreviewSlides.length;
+      updatePreviewImage();
+    }
+    
+    function nextSlide() {
+      if (currentPreviewSlides.length === 0) return;
+      
+      currentPreviewIndex = (currentPreviewIndex + 1) % currentPreviewSlides.length;
+      updatePreviewImage();
+    }
+    
+    function updatePreviewImage() {
+      const previewImage = document.getElementById('preview-image');
+      const currentSlide = document.getElementById('current-slide');
+      
+      if (currentPreviewSlides[currentPreviewIndex]) {
+        previewImage.src = currentPreviewSlides[currentPreviewIndex].download_url || currentPreviewSlides[currentPreviewIndex].url;
+        currentSlide.textContent = currentPreviewIndex + 1;
+        
+        // Add loading state
+        previewImage.style.opacity = '0.7';
+        const tempImage = new Image();
+        tempImage.onload = () => {
+          previewImage.style.opacity = '1';
+        };
+        tempImage.src = previewImage.src;
+      }
+    }
+    
+    // Close modal when clicking outside the image
+    document.getElementById('preview-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closePreview();
+      }
+    });
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+      const modal = document.getElementById('preview-modal');
+      if (!modal.classList.contains('hidden')) {
+        if (e.key === 'Escape') {
+          closePreview();
+        } else if (e.key === 'ArrowLeft') {
+          prevSlide();
+        } else if (e.key === 'ArrowRight') {
+          nextSlide();
+        }
+      }
+    });
     // ==================== INITIALIZE ====================
     function initialize() {
       // Initialize dark mode
@@ -1215,7 +1214,7 @@
         img.className = 'w-full h-48 object-cover cursor-pointer';
 
         // Add click event for preview
-        img.addEventListener('click',() => {
+        img.addEventListener('click',function() => {
           openPreview(slides, index);
         });
         
@@ -1241,8 +1240,8 @@
                       class="btn-icon p-2 rounded-lg" style="color: var(--cyan-primary)"
                       title="Preview">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12e3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                 </svg>
               </button>
               <button onclick="downloadSlide('${slide.download_url || slide.url}', 'slide-${index + 1}.jpg')" 
