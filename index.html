@@ -880,7 +880,11 @@
       
       // Initialize sidebar
       updateSidebarState();
-      
+
+      document.getElementById('ide-to-carousel-view').classList.add('hidden');
+      document.getElementById('skrip-to-carousel-view').classList.add('hidden');
+      document.getElementById('history-view').classList.add('hidden');
+      document.getElementById('results-view').classList.add('hidden');
       // Show home view
       showHome();
     }
@@ -974,6 +978,8 @@
       appState.previousView = appState.currentView;
       appState.currentView = 'home';
       document.getElementById('home-view').classList.remove('hidden');
+      document.getElementById('ide-to-carousel-view').classList.add('hidden');
+      document.getElementById('skrip-to-carousel-view').classList.add('hidden');
       document.getElementById('history-view').classList.add('hidden');
       document.getElementById('results-view').classList.add('hidden');
       
@@ -988,6 +994,8 @@
       appState.previousView = appState.currentView;
       appState.currentView = 'history';
       document.getElementById('home-view').classList.add('hidden');
+      document.getElementById('ide-to-carousel-view').classList.add('hidden');
+      document.getElementById('skrip-to-carousel-view').classList.add('hidden');
       document.getElementById('history-view').classList.remove('hidden');
       document.getElementById('results-view').classList.add('hidden');
       
@@ -995,7 +1003,7 @@
       
       // Update sidebar active state
       document.querySelectorAll('.sidebar-item').forEach((item, index) => {
-        if (index === 1) item.classList.add('active');
+        if (index === 3) item.classList.add('active');
         else item.classList.remove('active');
       });
     }
@@ -1004,6 +1012,8 @@
       appState.previousView = appState.currentView;
       appState.currentView = 'results';
       document.getElementById('home-view').classList.add('hidden');
+      document.getElementById('ide-to-carousel-view').classList.add('hidden');
+      document.getElementById('skrip-to-carousel-view').classList.add('hidden');
       document.getElementById('history-view').classList.add('hidden');
       document.getElementById('results-view').classList.remove('hidden');
       
@@ -1018,6 +1028,10 @@
         case 'home':
           showHome();
           break;
+        case 'ide-to-carousel':
+          showSkripToCarousel();
+        case 'history':
+          showSkripToCarousel();
         case 'history':
           showHistory();
           break;
