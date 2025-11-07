@@ -279,6 +279,22 @@
           <span class="sidebar-text whitespace-nowrap font-medium">Home</span>
         </div>
         
+        <!-- Ide to Carousel -->
+        <div onclick="showIdeToCarousel()" class="sidebar-item flex items-center gap-3 px-3 py-3 rounded-lg text-white">
+          <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+          </svg>
+          <span class="sidebar-text whitespace-nowrap font-medium">Ide to Carousel</span>
+        </div>
+        
+        <!-- Skrip to Carousel -->
+        <div onclick="showSkripToCarousel()" class="sidebar-item flex items-center gap-3 px-3 py-3 rounded-lg text-white">
+          <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <span class="sidebar-text whitespace-nowrap font-medium">Skrip to Carousel</span>
+        </div>
+        
         <!-- History -->
         <div onclick="showHistory()" class="sidebar-item flex items-center gap-3 px-3 py-3 rounded-lg text-white">
           <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,25 +340,126 @@
         
         <!-- Home View -->
         <div id="home-view" class="animate-fade-in">
-          <div class="max-w-2xl mx-auto text-center mt-40">
+          <div class="max-w-6xl mx-auto">
             
             <!-- Welcome Message -->
-            <div class="text-center mb-8">
-              <h2 class="text-3xl font-bold mb-2">Selamat Datang <span id="user-name"></span></h2>
-              <p class="text-secondary" style="color: var(--text-secondary)">Siap membuat karya hebatmu?</p>
+            <div class="text-center mb-12">
+              <h2 class="text-3xl font-bold mb-2">Selamat Datang <span id="user-name"></span> 👋</h2>
+              <p class="text-secondary" style="color: var(--text-secondary)">Pilih metode untuk membuat carousel presentasi yang menarik</p>
             </div>
             
-            <!-- Settings Dropdown -->
-            <div id="settings-dropdown" class="settings-dropdown rounded-xl">
-              <div class="grid grid-cols-1 gap-4">
+            <!-- Generator Options -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+              <!-- Ide to Carousel Card -->
+              <div class="content-card rounded-2xl p-8 text-center cursor-pointer hover:shadow-xl transition-all duration-300"
+                   onclick="showIdeToCarousel()">
+                <div class="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                  <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-bold mb-3">Ide to Carousel</h3>
+                <p class="text-secondary mb-4" style="color: var(--text-secondary)">
+                  Mulai dari ide sederhana dan biarkan AI mengembangkannya menjadi carousel presentasi yang lengkap
+                </p>
+                <div class="flex justify-center items-center text-sm text-blue-600 dark:text-blue-400 font-medium">
+                  <span>Mulai Sekarang</span>
+                  <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </div>
+              </div>
+              
+              <!-- Skrip to Carousel Card -->
+              <div class="content-card rounded-2xl p-8 text-center cursor-pointer hover:shadow-xl transition-all duration-300"
+                   onclick="showSkripToCarousel()">
+                <div class="w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                  <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-bold mb-3">Skrip to Carousel</h3>
+                <p class="text-secondary mb-4" style="color: var(--text-secondary)">
+                  Sudah punya naskah lengkap? Konversi menjadi carousel presentasi yang profesional dan menarik
+                </p>
+                <div class="flex justify-center items-center text-sm text-green-600 dark:text-green-400 font-medium">
+                  <span>Mulai Sekarang</span>
+                  <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Features Section -->
+            <div class="content-card rounded-2xl p-8">
+              <h3 class="text-2xl font-bold mb-6 text-center">Mengapa SlideGen?</h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center">
+                  <div class="w-12 h-12 mx-auto mb-3 bg-cyan-100 dark:bg-cyan-900 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-cyan-600 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                  </div>
+                  <h4 class="font-semibold mb-2">Cepat & Efisien</h4>
+                  <p class="text-sm text-secondary" style="color: var(--text-secondary)">Generate carousel dalam hitungan menit tanpa desain manual</p>
+                </div>
+                
+                <div class="text-center">
+                  <div class="w-12 h-12 mx-auto mb-3 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                    </svg>
+                  </div>
+                  <h4 class="font-semibold mb-2">Multiple Templates</h4>
+                  <p class="text-sm text-secondary" style="color: var(--text-secondary)">Pilih dari berbagai template yang sesuai dengan kebutuhan Anda</p>
+                </div>
+                
+                <div class="text-center">
+                  <div class="w-12 h-12 mx-auto mb-3 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                  </div>
+                  <h4 class="font-semibold mb-2">Aman & Private</h4>
+                  <p class="text-sm text-secondary" style="color: var(--text-secondary)">Data Anda tetap aman dan tidak disimpan tanpa izin</p>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+
+        <!-- Ide to Carousel View -->
+        <div id="ide-to-carousel-view" class="hidden animate-fade-in">
+          <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+              <h2 class="text-3xl font-bold mb-2">Ide to Carousel</h2>
+              <p class="text-secondary" style="color: var(--text-secondary)">Ubah ide sederhana menjadi carousel presentasi yang menarik</p>
+            </div>
+            
+            <!-- Input Area untuk Ide -->
+            <div class="content-card rounded-2xl p-8">
+              <div class="mb-6">
+                <label class="block text-sm font-medium mb-3" style="color: var(--text-secondary)">Deskripsikan ide Anda</label>
+                <textarea
+                  id="ide-input" 
+                  placeholder="Contoh: Saya ingin membuat presentasi tentang pentingnya menjaga lingkungan hidup untuk anak muda..." 
+                  class="input-field w-full px-4 py-3 rounded-xl text-base resize-vertical"
+                  rows="4"
+                ></textarea>
+              </div>
+              
+              <!-- Settings -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                   <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary)">Creator name</label>
-                  <input type="text" id="creator-name" placeholder="Your name" 
+                  <input type="text" id="ide-creator-name" placeholder="Your name" 
                          class="input-field w-full px-4 py-2 rounded-lg text-sm">
                 </div>
                 <div>
                   <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary)">Template</label>
-                  <select id="template" class="input-field w-full px-4 py-2 rounded-lg text-sm">
+                  <select id="ide-template" class="input-field w-full px-4 py-2 rounded-lg text-sm">
                     <option value="modern">Modern</option>
                     <option value="minimal">Minimal</option>
                     <option value="creative">Creative</option>
@@ -351,7 +468,7 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary)">Voice Tone</label>
-                  <select id="voice-tone" class="input-field w-full px-4 py-2 rounded-lg text-sm">
+                  <select id="ide-voice-tone" class="input-field w-full px-4 py-2 rounded-lg text-sm">
                     <option value="professional">Professional</option>
                     <option value="casual">Casual</option>
                     <option value="enthusiastic">Enthusiastic</option>
@@ -359,58 +476,107 @@
                   </select>
                 </div>
               </div>
-            </div>
-            
-            <!-- Input Area -->
-            <div class="relative">
-              <!-- Settings Toggle Button -->
-              <button onclick="toggleSettings()" class="btn-icon absolute -left-12 top-2 w-10 h-10 rounded-lg flex items-center justify-center" style="color: var(--text-secondary)">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+              
+              <!-- Generate Button -->
+              <button onclick="handleIdeGenerate()" id="ide-send-btn" class="btn-send w-full py-3 rounded-xl flex items-center justify-center text-white font-medium">
+                <svg id="ide-send-icon" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                <span>Generate Carousel dari Ide</span>
+                <svg id="ide-loader-icon" class="w-5 h-5 animate-spin hidden ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
               </button>
               
-              <div class="flex items-center gap-3">
-                <!-- Input Field -->
-                <textarea
-                  id="script-input" 
-                  placeholder="Ketik pesan..." 
-                  class="input-field flex-1 px-6 py-3 rounded-xl text-base resize-vertical"
-                  rows="4"
-                  onkeypress="handleKeyPress(event)"
-                ></textarea>
-                <!-- <input 
-                  type="text" 
-                  id="script-input" 
-                  placeholder="Ketik pesan..." 
-                  class="input-field flex-1 px-6 py-3 rounded-full text-base"
-                  onkeypress="handleKeyPress(event)"
-                > -->
-                
-                <!-- Send Button -->
-                <button onclick="handleGenerate()" id="send-btn" class="btn-send w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-white">
-                  <svg id="send-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                  </svg>
-                  <svg id="loader-icon" class="w-5 h-5 animate-spin hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            
-            <!-- Progress Bar -->
-            <div id="progress-container" class="hidden mt-6">
-              <div class="flex items-center gap-3 text-sm" style="color: var(--text-secondary)">
-                <span>Generating slides...</span>
-                <div class="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div id="progress-bar" class="progress-bar h-full" style="width: 0%"></div>
+              <!-- Progress Bar -->
+              <div id="ide-progress-container" class="hidden mt-6">
+                <div class="flex items-center gap-3 text-sm" style="color: var(--text-secondary)">
+                  <span>Mengembangkan ide menjadi carousel...</span>
+                  <div class="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div id="ide-progress-bar" class="progress-bar h-full" style="width: 0%"></div>
+                  </div>
+                  <span id="ide-progress-percent" class="font-medium" style="color: var(--cyan-primary)">0%</span>
                 </div>
-                <span id="progress-percent" class="font-medium" style="color: var(--cyan-primary)">0%</span>
               </div>
             </div>
+          </div>
+        </div>
+        
+        <!-- Skrip to Carousel View -->
+        <div id="skrip-to-carousel-view" class="hidden animate-fade-in">
+          <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+              <h2 class="text-3xl font-bold mb-2">Skrip to Carousel</h2>
+              <p class="text-secondary" style="color: var(--text-secondary)">Konversi naskah lengkap menjadi carousel presentasi</p>
+            </div>
             
+            <!-- Input Area untuk Skrip -->
+            <div class="content-card rounded-2xl p-8">
+              <div class="mb-6">
+                <label class="block text-sm font-medium mb-3" style="color: var(--text-secondary)">Masukkan naskah lengkap Anda</label>
+                <textarea
+                  id="skrip-input" 
+                  placeholder="Contoh: Presentasi tentang digital marketing...
+                  
+        1. Pendahuluan: Digital marketing adalah...
+        2. Strategi SEO: Optimasi mesin pencari...
+        3. Social Media Marketing: Penggunaan platform..." 
+                  class="input-field w-full px-4 py-3 rounded-xl text-base resize-vertical"
+                  rows="6"
+                ></textarea>
+              </div>
+              
+              <!-- Settings -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                  <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary)">Creator name</label>
+                  <input type="text" id="skrip-creator-name" placeholder="Your name" 
+                         class="input-field w-full px-4 py-2 rounded-lg text-sm">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary)">Template</label>
+                  <select id="skrip-template" class="input-field w-full px-4 py-2 rounded-lg text-sm">
+                    <option value="modern">Modern</option>
+                    <option value="minimal">Minimal</option>
+                    <option value="creative">Creative</option>
+                    <option value="corporate">Corporate</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary)">Voice Tone</label>
+                  <select id="skrip-voice-tone" class="input-field w-full px-4 py-2 rounded-lg text-sm">
+                    <option value="professional">Professional</option>
+                    <option value="casual">Casual</option>
+                    <option value="enthusiastic">Enthusiastic</option>
+                    <option value="formal">Formal</option>
+                  </select>
+                </div>
+              </div>
+              
+              <!-- Generate Button -->
+              <button onclick="handleSkripGenerate()" id="skrip-send-btn" class="btn-send w-full py-3 rounded-xl flex items-center justify-center text-white font-medium">
+                <svg id="skrip-send-icon" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span>Generate Carousel dari Skrip</span>
+                <svg id="skrip-loader-icon" class="w-5 h-5 animate-spin hidden ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </button>
+              
+              <!-- Progress Bar -->
+              <div id="skrip-progress-container" class="hidden mt-6">
+                <div class="flex items-center gap-3 text-sm" style="color: var(--text-secondary)">
+                  <span>Mengonversi skrip menjadi carousel...</span>
+                  <div class="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div id="skrip-progress-bar" class="progress-bar h-full" style="width: 0%"></div>
+                  </div>
+                  <span id="skrip-progress-percent" class="font-medium" style="color: var(--cyan-primary)">0%</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -500,14 +666,21 @@
 
   <script>
     // ==================== CONSTANTS ====================
-    const SUBMIT_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/v5';
-    const STATUS_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/pollingv5';
+    // Ide to Carousel Webhooks
+    const IDE_SUBMIT_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/ide-submit';
+    const IDE_STATUS_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/ide-status';
+    
+    // Skrip to Carousel Webhooks  
+    const SKRIP_SUBMIT_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/skrip-submit';
+    const SKRIP_STATUS_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/skrip-status';
+    
     const MAX_RETRIES = 3;
     const INITIAL_POLL_INTERVAL = 5000;
     const MAX_POLL_ATTEMPTS = 60;
     const MAX_CONSECUTIVE_ERRORS = 3;
     const MAX_HISTORY_ITEMS = 50;
 
+    // ==================== APP STATE ====================
     // ==================== APP STATE ====================
     class AppState {
       constructor() {
@@ -523,9 +696,12 @@
         this.currentView = 'home';
         this.currentSlides = [];
         this.previousView = 'home';
+        this.currentMode = 'ide'; // 'ide' or 'skrip'
         
         window.addEventListener('beforeunload', () => this.cleanup());
       }
+      
+      // ... methods lainnya tetap sama ...
       
       loadDarkMode() {
         const stored = localStorage.getItem('darkMode');
@@ -613,6 +789,10 @@
       
       cleanup() {
         this.stopGeneration();
+      }
+
+      setMode(mode) {
+        this.currentMode = mode;
       }
     }
 
@@ -752,6 +932,44 @@
       dropdown.classList.toggle('show');
     }
 
+    // ==================== VIEW FUNCTIONS ====================
+    function showIdeToCarousel() {
+      appState.previousView = appState.currentView;
+      appState.currentView = 'ide-to-carousel';
+      appState.setMode('ide');
+      
+      document.getElementById('home-view').classList.add('hidden');
+      document.getElementById('ide-to-carousel-view').classList.remove('hidden');
+      document.getElementById('skrip-to-carousel-view').classList.add('hidden');
+      document.getElementById('history-view').classList.add('hidden');
+      document.getElementById('results-view').classList.add('hidden');
+      
+      // Update sidebar active state
+      document.querySelectorAll('.sidebar-item').forEach((item, index) => {
+        if (index === 1) item.classList.add('active');
+        else item.classList.remove('active');
+      });
+    }
+    
+    function showSkripToCarousel() {
+      appState.previousView = appState.currentView;
+      appState.currentView = 'skrip-to-carousel';
+      appState.setMode('skrip');
+      
+      document.getElementById('home-view').classList.add('hidden');
+      document.getElementById('ide-to-carousel-view').classList.add('hidden');
+      document.getElementById('skrip-to-carousel-view').classList.remove('hidden');
+      document.getElementById('history-view').classList.add('hidden');
+      document.getElementById('results-view').classList.add('hidden');
+      
+      // Update sidebar active state
+      document.querySelectorAll('.sidebar-item').forEach((item, index) => {
+        if (index === 2) item.classList.add('active');
+        else item.classList.remove('active');
+      });
+    }
+    
+    // ... fungsi showHome, showHistory, showResults tetap ...
     function showHome() {
       appState.previousView = appState.currentView;
       appState.currentView = 'home';
@@ -915,11 +1133,12 @@
     }
 
     // ==================== GENERATION LOGIC ====================
-    async function handleGenerate() {
-      const script = document.getElementById('script-input').value.trim();
+    // ==================== GENERATION FUNCTIONS ====================
+    async function handleIdeGenerate() {
+      const ide = document.getElementById('ide-input').value.trim();
       
-      if (!script) {
-        showToast('Please enter a presentation description', 'warning');
+      if (!ide) {
+        showToast('Please enter your idea', 'warning');
         return;
       }
       
@@ -928,19 +1147,48 @@
         return;
       }
       
-      showToast('Sending request to n8n...', 'info');
-
+      showToast('Mengembangkan ide menjadi carousel...', 'info');
+    
       const payload = {
-        pesan: script,
-        creator_name: document.getElementById('creator-name').value || '',
-        template_style: document.getElementById('template').value,
-        tone_of_voice: document.getElementById('voice-tone').value
+        pesan: ide,
+        creator_name: document.getElementById('ide-creator-name').value || '',
+        template_style: document.getElementById('ide-template').value,
+        tone_of_voice: document.getElementById('ide-voice-tone').value
       };
       
+      await handleGenerate(payload, IDE_SUBMIT_WEBHOOK, IDE_STATUS_WEBHOOK, 'ide');
+    }
+    
+    async function handleSkripGenerate() {
+      const skrip = document.getElementById('skrip-input').value.trim();
+      
+      if (!skrip) {
+        showToast('Please enter your script', 'warning');
+        return;
+      }
+      
+      if (appState.isGenerating) {
+        showToast('Please wait for current generation to complete', 'warning');
+        return;
+      }
+      
+      showToast('Mengonversi skrip menjadi carousel...', 'info');
+    
+      const payload = {
+        pesan: skrip,
+        creator_name: document.getElementById('skrip-creator-name').value || '',
+        template_style: document.getElementById('skrip-template').value,
+        tone_of_voice: document.getElementById('skrip-voice-tone').value
+      };
+      
+      await handleGenerate(payload, SKRIP_SUBMIT_WEBHOOK, SKRIP_STATUS_WEBHOOK, 'skrip');
+    }
+    
+    async function handleGenerate(payload, submitWebhook, statusWebhook, mode) {
       console.log('Sending payload:', payload);
-
+    
       try {
-        const response = await retryFetch(SUBMIT_WEBHOOK, {
+        const response = await retryFetch(submitWebhook, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -952,7 +1200,7 @@
         } catch (e) {
           throw new Error(`Failed to parse response. Status: ${response.status}`);
         }
-
+    
         if (!response.ok) {
           let errorDetails = data.message || JSON.stringify(data) || `Status: ${response.status}`;
           throw new Error(`HTTP Error: ${errorDetails}`);
@@ -964,19 +1212,19 @@
           console.error('Invalid response:', data);
           throw new Error('No job ID received. Response: ' + JSON.stringify(data));
         }
-
+    
         appState.startGeneration(jobId);
-        syncUIWithState();
+        syncUIWithState(mode);
         
         showToast('Generation started!', 'info');
         
-        await checkJobStatus(jobId, script);
-        appState.pollingInterval = setInterval(() => checkJobStatus(jobId, script), INITIAL_POLL_INTERVAL);
-
+        await checkJobStatus(jobId, payload.pesan, statusWebhook, mode);
+        appState.pollingInterval = setInterval(() => checkJobStatus(jobId, payload.pesan, statusWebhook, mode), INITIAL_POLL_INTERVAL);
+    
       } catch (error) {
         console.error('Generation error:', error);
         appState.stopGeneration();
-        syncUIWithState();
+        syncUIWithState(mode);
         
         if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
           showToast('Network error. Check connection and CORS settings.', 'error');
@@ -985,9 +1233,37 @@
         }
       }
     }
-
-    // ==================== POLLING LOGIC ====================
-    async function checkJobStatus(jobId, script) {
+    
+    // Update syncUIWithState untuk support multiple modes
+    function syncUIWithState(mode = 'ide') {
+      const sendBtn = document.getElementById(`${mode}-send-btn`);
+      const sendIcon = document.getElementById(`${mode}-send-icon`);
+      const loaderIcon = document.getElementById(`${mode}-loader-icon`);
+      const progressContainer = document.getElementById(`${mode}-progress-container`);
+      const progressBar = document.getElementById(`${mode}-progress-bar`);
+      const progressPercent = document.getElementById(`${mode}-progress-percent`);
+      
+      if (appState.isGenerating) {
+        sendBtn.disabled = true;
+        sendBtn.style.opacity = '0.5';
+        sendBtn.style.cursor = 'not-allowed';
+        sendIcon.classList.add('hidden');
+        loaderIcon.classList.remove('hidden');
+        progressContainer.classList.remove('hidden');
+      } else {
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = '1';
+        sendBtn.style.cursor = 'pointer';
+        sendIcon.classList.remove('hidden');
+        loaderIcon.classList.add('hidden');
+        progressContainer.classList.add('hidden');
+        progressBar.style.width = '0%';
+        progressPercent.textContent = '0%';
+      }
+    }
+    
+    // Update checkJobStatus untuk support multiple webhooks
+    async function checkJobStatus(jobId, content, statusWebhook, mode) {
       try {
         appState.pollAttempts++;
         
@@ -996,14 +1272,14 @@
         
         if (appState.pollAttempts > MAX_POLL_ATTEMPTS || elapsedTime > maxPollTime) {
           appState.stopGeneration();
-          syncUIWithState();
+          syncUIWithState(mode);
           showToast('Generation timeout. The process took too long. Please try again.', 'error');
           return;
         }
         
         console.log(`Polling attempt ${appState.pollAttempts}/${MAX_POLL_ATTEMPTS} for job: ${jobId}`);
         
-        const response = await retryFetch(`${STATUS_WEBHOOK}?jobId=${encodeURIComponent(jobId)}`);
+        const response = await retryFetch(`${statusWebhook}?jobId=${encodeURIComponent(jobId)}`);
         const data = await response.json();
         
         const jobData = parseJobResponse(data);
@@ -1013,25 +1289,26 @@
           appState.consecutiveErrors = 0;
           return;
         }
-
+    
         if (!jobData.status) {
           throw new Error('Invalid polling response: missing status field');
         }
-
+    
         appState.consecutiveErrors = 0;
-
+    
         if (jobData.status === 'COMPLETED' && jobData.slides && Array.isArray(jobData.slides) && jobData.slides.length > 0) {
           appState.stopGeneration();
-          syncUIWithState();
+          syncUIWithState(mode);
           
           const newItem = {
             id: Date.now(),
-            script: script.substring(0, 100) + (script.length > 100 ? '...' : ''),
+            script: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
             slides: jobData.slides || [],
-            creatorName: document.getElementById('creator-name').value,
-            template: document.getElementById('template').value,
+            creatorName: document.getElementById(`${mode}-creator-name`).value,
+            template: document.getElementById(`${mode}-template`).value,
             timestamp: new Date().toISOString(),
-            jobId
+            jobId,
+            mode: mode
           };
           
           appState.addToHistory(newItem);
@@ -1041,27 +1318,29 @@
           showResults();
           
           showToast(`Successfully generated ${jobData.slides.length} slides!`, 'success');
-          document.getElementById('script-input').value = '';
+          
+          // Clear input
+          document.getElementById(`${mode}-input`).value = '';
           
           console.log('Generation completed successfully');
           
         } else if (jobData.status === 'Failed' || jobData.status === 'FAILED') {
           appState.stopGeneration();
-          syncUIWithState();
+          syncUIWithState(mode);
           const errorMsg = jobData.error || jobData.message || 'Unknown error';
           throw new Error('Generation failed: ' + errorMsg);
-
+    
         } else {
           console.log('Job still processing, status:', jobData.status);
           
           if (jobData.progress !== undefined) {
             const progress = Math.min(Math.max(parseInt(jobData.progress), 0), 100);
-            document.getElementById('progress-percent').textContent = progress + '%';
-            document.getElementById('progress-bar').style.width = progress + '%';
+            document.getElementById(`${mode}-progress-percent`).textContent = progress + '%';
+            document.getElementById(`${mode}-progress-bar`).style.width = progress + '%';
           } else {
             const estimatedProgress = Math.min((appState.pollAttempts / MAX_POLL_ATTEMPTS) * 90, 90);
-            document.getElementById('progress-percent').textContent = Math.round(estimatedProgress) + '%';
-            document.getElementById('progress-bar').style.width = estimatedProgress + '%';
+            document.getElementById(`${mode}-progress-percent`).textContent = Math.round(estimatedProgress) + '%';
+            document.getElementById(`${mode}-progress-bar`).style.width = estimatedProgress + '%';
           }
         }
       } catch (error) {
@@ -1070,7 +1349,7 @@
         
         if (appState.consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
           appState.stopGeneration();
-          syncUIWithState();
+          syncUIWithState(mode);
           showToast('Multiple polling failures. Please check your connection and try again.', 'error');
           return;
         }
