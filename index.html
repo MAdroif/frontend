@@ -98,18 +98,13 @@
 
     /* Preview Modal Styles */
     #preview-modal {
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(4px);
       transition: all 0.3s ease;
     }
     
-    #preview-modal img {
-      cursor: zoom-in;
-    }
-    
-    #preview-modal.zoomed img {
-      cursor: zoom-out;
-      transform: scale(1.5);
-      transition: transform 0.3s ease;
+    #preview-modal .modal-content {
+      max-height: 90vh;
+      overflow: auto;
     }
     
     /* Buttons */
@@ -456,43 +451,50 @@
   </div>
 
   <!-- Preview Modal -->
-  <div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
-    <div class="relative max-w-4xl max-h-full mx-4">
-      <!-- Close Button -->
-      <button onclick="closePreview()" class="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors duration-200">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
-      
-      <!-- Navigation Buttons -->
-      <button onclick="navigateSlide(-1)" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-        </svg>
-      </button>
-      
-      <button onclick="navigateSlide(1)" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-        </svg>
-      </button>
-      
-      <!-- Image -->
-      <img id="preview-image" src="" alt="Preview" class="rounded-lg shadow-2xl max-w-full max-h-full">
-      
-      <!-- Slide Counter -->
-      <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
-        <span id="slide-counter">1 / 1</span>
+  <div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-3xl w-full mx-4">
+      <!-- Header dengan Tombol Close -->
+      <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+        <h3 class="text-lg font-semibold">Slide Preview</h3>
+        <button onclick="closePreview()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
       </div>
       
-      <!-- Download Button in Preview -->
-      <button onclick="downloadCurrentSlide()" class="absolute bottom-4 right-4 bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-        </svg>
-        Download
-      </button>
+      <!-- Image Container -->
+      <div class="p-6 flex justify-center">
+        <img id="preview-image" src="" alt="Preview" class="rounded-lg shadow-lg max-w-full max-h-96 object-contain">
+      </div>
+      
+      <!-- Footer dengan Navigasi dan Info -->
+      <div class="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700">
+        <!-- Navigasi -->
+        <div class="flex items-center gap-2">
+          <button onclick="navigateSlide(-1)" class="btn-icon p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+          </button>
+          
+          <span id="slide-counter" class="text-sm font-medium px-3">1 / 1</span>
+          
+          <button onclick="navigateSlide(1)" class="btn-icon p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Download Button -->
+        <button onclick="downloadCurrentSlide()" class="btn-send px-4 py-2 rounded-lg flex items-center gap-2 text-white">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+          </svg>
+          Download
+        </button>
+      </div>
     </div>
   </div>
 
@@ -635,18 +637,12 @@
         
         // Add keyboard event listeners
         document.addEventListener('keydown', handlePreviewKeyboard);
-        
-        // Add click to zoom functionality
-        image.onclick = function() {
-          modal.classList.toggle('zoomed');
-        };
       }
     }
     
     function closePreview() {
       const modal = document.getElementById('preview-modal');
       modal.classList.add('hidden');
-      modal.classList.remove('zoomed');
       
       // Remove event listeners
       document.removeEventListener('keydown', handlePreviewKeyboard);
@@ -672,9 +668,6 @@
       
       image.src = currentPreviewSlides[currentPreviewIndex].download_url || currentPreviewSlides[currentPreviewIndex].url;
       counter.textContent = `${currentPreviewIndex + 1} / ${currentPreviewSlides.length}`;
-      
-      // Reset zoom state when changing slides
-      document.getElementById('preview-modal').classList.remove('zoomed');
     }
     
     function handlePreviewKeyboard(event) {
