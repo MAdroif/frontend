@@ -95,7 +95,133 @@
       border-color: var(--cyan-primary);
       box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.1);
     }
+
+    /* Modal Preview */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      animation: fadeIn 0.3s ease-out;
+    }
     
+    .modal-content {
+      background: var(--content-bg);
+      border-radius: 16px;
+      max-width: 90vw;
+      max-height: 90vh;
+      width: auto;
+      height: auto;
+      position: relative;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    .modal-image {
+      max-width: 100%;
+      max-height: 80vh;
+      width: auto;
+      height: auto;
+      border-radius: 16px;
+      display: block;
+    }
+    
+    .modal-close {
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .modal-close:hover {
+      background: white;
+      transform: scale(1.1);
+    }
+    
+    .modal-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .modal-nav:hover {
+      background: white;
+      transform: translateY(-50%) scale(1.1);
+    }
+    
+    .modal-prev {
+      left: -60px;
+    }
+    
+    .modal-next {
+      right: -60px;
+    }
+    
+    .modal-counter {
+      position: absolute;
+      bottom: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    /* Responsive untuk modal */
+    @media (max-width: 768px) {
+      .modal-content {
+        max-width: 95vw;
+        max-height: 95vh;
+      }
+      
+      .modal-close {
+        top: -50px;
+        right: 10px;
+      }
+      
+      .modal-nav {
+        width: 40px;
+        height: 40px;
+      }
+      
+      .modal-prev {
+        left: 10px;
+      }
+      
+      .modal-next {
+        right: 10px;
+      }
+    }
     /* Buttons */
     .btn-icon {
       transition: all 0.2s ease;
@@ -439,6 +565,35 @@
     
   </div>
 
+  <!-- Modal Preview -->
+  <div id="preview-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <button onclick="closePreview()" class="modal-close">
+        <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      
+      <button onclick="prevSlide()" class="modal-nav modal-prev">
+        <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      </button>
+      
+      <button onclick="nextSlide()" class="modal-nav modal-next">
+        <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </button>
+      
+      <img id="preview-image" class="modal-image" src="" alt="Slide Preview">
+      
+      <div class="modal-counter">
+        <span id="current-slide">1</span> / <span id="total-slides">0</span>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ==================== CONSTANTS ====================
     const SUBMIT_WEBHOOK = 'https://n8n-vogmx0uye8x5.arman.sumopod.my.id/webhook/v5';
@@ -475,7 +630,91 @@
         }
         return window.matchMedia('(prefers-color-scheme: dark)').matches;
       }
+
+      // ==================== MODAL PREVIEW FUNCTIONS ====================
+      let currentPreviewIndex = 0;
+      let currentPreviewSlides = [];
       
+      function openPreview(slides, startIndex = 0) {
+        currentPreviewSlides = slides;
+        currentPreviewIndex = startIndex;
+        
+        const modal = document.getElementById('preview-modal');
+        const previewImage = document.getElementById('preview-image');
+        const currentSlide = document.getElementById('current-slide');
+        const totalSlides = document.getElementById('total-slides');
+        
+        if (slides.length > 0 && slides[startIndex]) {
+          previewImage.src = slides[startIndex].download_url || slides[startIndex].url;
+          currentSlide.textContent = startIndex + 1;
+          totalSlides.textContent = slides.length;
+        }
+        
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+      }
+      
+      function closePreview() {
+        const modal = document.getElementById('preview-modal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = ''; // Restore scrolling
+        currentPreviewSlides = [];
+        currentPreviewIndex = 0;
+      }
+      
+      function prevSlide() {
+        if (currentPreviewSlides.length === 0) return;
+        
+        currentPreviewIndex = (currentPreviewIndex - 1 + currentPreviewSlides.length) % currentPreviewSlides.length;
+        updatePreviewImage();
+      }
+      
+      function nextSlide() {
+        if (currentPreviewSlides.length === 0) return;
+        
+        currentPreviewIndex = (currentPreviewIndex + 1) % currentPreviewSlides.length;
+        updatePreviewImage();
+      }
+      
+      function updatePreviewImage() {
+        const previewImage = document.getElementById('preview-image');
+        const currentSlide = document.getElementById('current-slide');
+        
+        if (currentPreviewSlides[currentPreviewIndex]) {
+          previewImage.src = currentPreviewSlides[currentPreviewIndex].download_url || currentPreviewSlides[currentPreviewIndex].url;
+          currentSlide.textContent = currentPreviewIndex + 1;
+          
+          // Add loading state
+          previewImage.style.opacity = '0.7';
+          const tempImage = new Image();
+          tempImage.onload = () => {
+            previewImage.style.opacity = '1';
+          };
+          tempImage.src = previewImage.src;
+        }
+      }
+      
+      // Close modal when clicking outside the image
+      document.getElementById('preview-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closePreview();
+        }
+      });
+      
+      // Keyboard navigation
+      document.addEventListener('keydown', function(e) {
+        const modal = document.getElementById('preview-modal');
+        if (!modal.classList.contains('hidden')) {
+          if (e.key === 'Escape') {
+            closePreview();
+          } else if (e.key === 'ArrowLeft') {
+            prevSlide();
+          } else if (e.key === 'ArrowRight') {
+            nextSlide();
+          }
+        }
+      });
+
       loadHistory() {
         try {
           const stored = localStorage.getItem('slideHistory');
@@ -973,7 +1212,12 @@
         const img = document.createElement('img');
         img.src = placeholderImgUrl;
         img.alt = `Slide ${index + 1}`;
-        img.className = 'w-full h-48 object-cover';
+        img.className = 'w-full h-48 object-cover cursor-pointer';
+
+        // Add click event for preview
+        img.addEventListener('click',() => {
+          openPreview(slides, index);
+        });
         
         const actualImage = new Image();
         actualImage.onload = () => {
@@ -992,12 +1236,23 @@
               <p class="font-medium">Slide ${index + 1}</p>
               <p class="text-sm" style="color: var(--text-secondary)">${slide.filename || 'generated-slide'}</p>
             </div>
-            <button onclick="downloadSlide('${slide.download_url || slide.url}', 'slide-${index + 1}.jpg')" 
-                    class="btn-icon p-2 rounded-lg" style="color: var(--cyan-primary)">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-              </svg>
-            </button>
+            <div class="flex gap-2">
+              <button onclick="openPreview(${JSON.stringify(slides).replace(/"/g, '&quot;')}, ${index})"
+                      class="btn-icon p-2 rounded-lg" style="color: var(--cyan-primary)"
+                      title="Preview">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12e3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+              <button onclick="downloadSlide('${slide.download_url || slide.url}', 'slide-${index + 1}.jpg')" 
+                      class="btn-icon p-2 rounded-lg" style="color: var(--cyan-primary)"
+                      title="Download">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+              </button>
+            </div>
           </div>
         `;
         
