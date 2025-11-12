@@ -502,7 +502,20 @@
             </div>
           </div>
         </div>
-        
+
+        <!-- Results Container untuk Ide -->
+        <div id="ide-results-container" class="hidden mt-8">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold">Hasil Slides</h3>
+            <button onclick="clearIdeResults()" class="btn-icon px-3 py-1 rounded-lg text-sm" style="color: var(--text-secondary)">
+              Clear
+            </button>
+          </div>
+          <div id="ide-slides-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Slides akan ditampilkan di sini -->
+          </div>
+        </div>
+
         <!-- Skrip to Carousel View -->
         <div id="skrip-to-carousel-view" class="hidden animate-fade-in">
           <div class="max-w-4xl mx-auto">
@@ -579,7 +592,20 @@
             </div>
           </div>
         </div>
-        
+
+        <!-- Results Container untuk Skrip -->
+        <div id="skrip-results-container" class="hidden mt-8">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold">Hasil Slides</h3>
+            <button onclick="clearSkripResults()" class="btn-icon px-3 py-1 rounded-lg text-sm" style="color: var(--text-secondary)">
+              Clear
+            </button>
+          </div>
+          <div id="skrip-slides-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Slides akan ditampilkan di sini -->
+          </div>
+        </div>
+
         <!-- History View -->
         <div id="history-view" class="hidden animate-fade-in">
           <div class="max-w-6xl mx-auto">
@@ -947,7 +973,9 @@
       document.getElementById('skrip-to-carousel-view').classList.add('hidden');
       document.getElementById('history-view').classList.add('hidden');
       document.getElementById('results-view').classList.add('hidden');
-      
+
+      clearIdeResults();
+
       // Update sidebar active state
       document.querySelectorAll('.sidebar-item').forEach((item, index) => {
         if (index === 1) item.classList.add('active');
@@ -966,6 +994,8 @@
       document.getElementById('history-view').classList.add('hidden');
       document.getElementById('results-view').classList.add('hidden');
       
+      clearSkripResults();
+
       // Update sidebar active state
       document.querySelectorAll('.sidebar-item').forEach((item, index) => {
         if (index === 2) item.classList.add('active');
@@ -983,6 +1013,9 @@
       document.getElementById('history-view').classList.add('hidden');
       document.getElementById('results-view').classList.add('hidden');
       
+      clearIdeResults();
+      clearSkripResults();
+
       // Update sidebar active state
       document.querySelectorAll('.sidebar-item').forEach((item, index) => {
         if (index === 0) item.classList.add('active');
@@ -1328,8 +1361,11 @@
           appState.addToHistory(newItem);
           appState.currentSlides = jobData.slides;
           
-          displaySlides(jobData.slides);
-          showResults();
+          if (mode === 'skrip') {
+            displaySkripResult(jobData.slides);
+          } else if (mode === 'ide') {
+            displayIdeResult(jobData.slides);
+          }
           
           showToast(`Successfully generated ${jobData.slides.length} slides!`, 'success');
           
@@ -1374,6 +1410,142 @@
           console.warn('Polling error (continuing):', error.message);
         }
       }
+    }
+
+    // ==================== DISPLAY FOR GENERATED FUNCTION ====================
+    // Fungsi untuk menampilkan hasil di Ide
+    function displayIdeResults(slides) {
+      const resultsContainer = document.getElementById('ide-results-container');
+      const slidesContainer = document.getElementById('ide-slides-container');
+      
+      if (!slides || slides.length === 0) {
+        slidesContainer.innerHTML = `<div class="col-span-full text-center py-4"><p class="text-gray-500 dark:text-gray-400">No slides generated</p></div>`;
+        return;
+      }
+      
+      slidesContainer.innerHTML = '';
+      
+      slides.forEach((slide, index) => {
+        const slideWrapper = document.createElement('div');
+        slideWrapper.className = 'content-card rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-xl';
+        
+        const img = document.createElement('img');
+        img.src = slide.download_url || slide.url;
+        img.alt = `Slide ${index + 1}`;
+        img.className = 'w-full h-40 object-cover cursor-pointer';
+        img.addEventListener('click', function() {
+          openPreview(slides, index);
+        });
+        
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'p-3';
+        infoDiv.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-medium text-sm">Slide ${index + 1}</p>
+              <p class="text-xs" style="color: var(--text-secondary)">${slide.filename || 'generated-slide'}</p>
+            </div>
+            <div class="flex gap-1">
+              <button onclick="openPreview(${JSON.stringify(slides).replace(/"/g, '&quot;')}, ${index})" 
+                      class="btn-icon p-1 rounded" style="color: var(--cyan-primary)"
+                      title="Preview">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+              <button onclick="downloadSlide('${slide.download_url || slide.url}', 'slide-${index + 1}.jpg')" 
+                      class="btn-icon p-1 rounded" style="color: var(--cyan-primary)"
+                      title="Download">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+        
+        slideWrapper.appendChild(img);
+        slideWrapper.appendChild(infoDiv);
+        slidesContainer.appendChild(slideWrapper);
+      });
+      
+      resultsContainer.classList.remove('hidden');
+    }
+    
+    // Fungsi untuk menampilkan hasil di Skrip
+    function displaySkripResults(slides) {
+      const resultsContainer = document.getElementById('skrip-results-container');
+      const slidesContainer = document.getElementById('skrip-slides-container');
+      
+      if (!slides || slides.length === 0) {
+        slidesContainer.innerHTML = `<div class="col-span-full text-center py-4"><p class="text-gray-500 dark:text-gray-400">No slides generated</p></div>`;
+        return;
+      }
+      
+      slidesContainer.innerHTML = '';
+      
+      slides.forEach((slide, index) => {
+        const slideWrapper = document.createElement('div');
+        slideWrapper.className = 'content-card rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-xl';
+        
+        const img = document.createElement('img');
+        img.src = slide.download_url || slide.url;
+        img.alt = `Slide ${index + 1}`;
+        img.className = 'w-full h-40 object-cover cursor-pointer';
+        img.addEventListener('click', function() {
+          openPreview(slides, index);
+        });
+        
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'p-3';
+        infoDiv.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-medium text-sm">Slide ${index + 1}</p>
+              <p class="text-xs" style="color: var(--text-secondary)">${slide.filename || 'generated-slide'}</p>
+            </div>
+            <div class="flex gap-1">
+              <button onclick="openPreview(${JSON.stringify(slides).replace(/"/g, '&quot;')}, ${index})" 
+                      class="btn-icon p-1 rounded" style="color: var(--cyan-primary)"
+                      title="Preview">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+              <button onclick="downloadSlide('${slide.download_url || slide.url}', 'slide-${index + 1}.jpg')" 
+                      class="btn-icon p-1 rounded" style="color: var(--cyan-primary)"
+                      title="Download">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+        
+        slideWrapper.appendChild(img);
+        slideWrapper.appendChild(infoDiv);
+        slidesContainer.appendChild(slideWrapper);
+      });
+      
+      resultsContainer.classList.remove('hidden');
+    }
+    
+    // Fungsi clear results
+    function clearIdeResults() {
+      const resultsContainer = document.getElementById('ide-results-container');
+      const slidesContainer = document.getElementById('ide-slides-container');
+      slidesContainer.innerHTML = '';
+      resultsContainer.classList.add('hidden');
+    }
+    
+    function clearSkripResults() {
+      const resultsContainer = document.getElementById('skrip-results-container');
+      const slidesContainer = document.getElementById('skrip-slides-container');
+      slidesContainer.innerHTML = '';
+      resultsContainer.classList.add('hidden');
     }
 
     // ==================== DISPLAY FUNCTION ====================
