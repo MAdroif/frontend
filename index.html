@@ -1362,9 +1362,9 @@
           appState.currentSlides = jobData.slides;
           
           if (mode === 'skrip') {
-            displaySkripResult(jobData.slides);
+            displaySkripResults(jobData.slides);
           } else if (mode === 'ide') {
-            displayIdeResult(jobData.slides);
+            displayIdeResults(jobData.slides);
           }
           
           showToast(`Successfully generated ${jobData.slides.length} slides!`, 'success');
