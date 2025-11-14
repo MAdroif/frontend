@@ -1092,8 +1092,9 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
       const toast = document.getElementById('toast');
       
       // Clear existing timeout jika ada
-      if (toast.timeoutId) {
-        clearTimeout(toast.timeoutId);
+      if (window.toastTimeout) {
+        clearTimeout(window.toastTimeout);
+        window.toastTimeout = null;
       }
       
       toast.className = `toast ${type}`;
@@ -1119,7 +1120,7 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
       toast.classList.remove('hidden');
       
       // Set timeout untuk auto-hide setelah 5 detik
-      toast.timeoutId = setTimeout(() => {
+      window.toastTimeout = setTimeout(() => {
         hideToast();
       }, 5000);
     }
@@ -1128,9 +1129,9 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
       const toast = document.getElementById('toast');
       
       // Clear timeout jika ada
-      if (toast.timeoutId) {
-        clearTimeout(toast.timeoutId);
-        toast.timeoutId = null;
+      if (window.toastTimeout) {
+        clearTimeout(window.toastTimeout);
+        window.toastTimeout = null;
       }
       
       toast.classList.add('hidden');
