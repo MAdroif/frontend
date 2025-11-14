@@ -216,8 +216,20 @@
       gap: 0.75rem;
       font-weight: 500;
       animation: fadeIn 0.3s ease-out;
+      min-width: 300px;
+      max-width: 500px;
     }
-    
+
+    .toast-close-btn {
+      opacity: 0.7;
+      transition: all 0.2s ease;
+    }
+
+    .toast-close-btn:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
     .toast.success { background: #10B981; color: white; }
     .toast.error { background: #EF4444; color: white; }
     .toast.warning { background: #F59E0B; color: white; }
@@ -1078,6 +1090,12 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
 
     function showToast(message, type = 'info') {
       const toast = document.getElementById('toast');
+      
+      // Clear existing timeout jika ada
+      if (toast.timeoutId) {
+        clearTimeout(toast.timeoutId);
+      }
+      
       toast.className = `toast ${type}`;
       
       const icons = {
@@ -1087,12 +1105,35 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
         info: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
       };
       
-      toast.innerHTML = icons[type] + '<span>' + message + '</span>';
+      // Tambahkan tombol close (X)
+      toast.innerHTML = `
+        ${icons[type]}
+        <span class="flex-1">${message}</span>
+        <button onclick="hideToast()" class="toast-close-btn flex-shrink-0 ml-2 p-1 rounded-full hover:bg-white hover:bg-opacity-20 transition-colors duration-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      `;
+      
       toast.classList.remove('hidden');
       
-      setTimeout(() => {
-        toast.classList.add('hidden');
-      }, 4000);
+      // Set timeout untuk auto-hide setelah 5 detik
+      toast.timeoutId = setTimeout(() => {
+        hideToast();
+      }, 5000);
+    }
+    
+    function hideToast() {
+      const toast = document.getElementById('toast');
+      
+      // Clear timeout jika ada
+      if (toast.timeoutId) {
+        clearTimeout(toast.timeoutId);
+        toast.timeoutId = null;
+      }
+      
+      toast.classList.add('hidden');
     }
 
     function syncUIWithState() {
