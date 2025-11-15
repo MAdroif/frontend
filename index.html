@@ -1405,7 +1405,15 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
         if (!jobData.status) {
           throw new Error('Invalid polling response: missing status field');
         }
-    
+
+        // FixL Check for OUT_OF_LIMIT status
+        if (jobData.status === 'OUT_OF_LIMIT') {
+          appState.stopGeneration();
+          syncUIWithState(mode);
+          showToast('Credit HTML/CSS to Image telah habis. Silahkan upgrade plan atau tunggu bulan depan.', 'error');
+          return; // Penting buat stop proses
+        }
+
         appState.consecutiveErrors = 0;
     
         if (jobData.status === 'COMPLETED' && jobData.slides && Array.isArray(jobData.slides) && jobData.slides.length > 0) {
