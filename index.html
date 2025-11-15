@@ -265,6 +265,27 @@
         width: 200px;
       }
     }
+
+    /* Out of Limit Modal Styles */
+    #out-of-limit-modal {
+      backdrop-filter: blur(4px);
+      transition: all 0.3s ease;
+    }
+    
+    #out-of-limit-modal .modal-content {
+      animation: slideInUp 0.3s ease-out;
+    }
+    
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   </style>
 </head>
 <body>
@@ -703,6 +724,44 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
           </svg>
           Download
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Out of Limit Modal -->
+  <div id="out-of-limit-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+        <h3 class="text-lg font-semibold text-red-600 dark:text-red-400">Credit Habis</h3>
+        <button onclick="closeOutOfLimitModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Content -->
+      <div class="p-6">
+        <div class="text-center mb-4">
+          <div class="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+            <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+          </div>
+          <h4 class="text-xl font-bold mb-2">Credit HTML/CSS to Image Habis</h4>
+          <p class="text-gray-600 dark:text-gray-300">
+            Credit yang tersedia untuk konversi HTML/CSS to Image telah mencapai batas limit. 
+            Fitur ini akan tersedia kembali pada periode berikutnya.
+          </p>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="flex justify-center p-6 border-t border-gray-200 dark:border-gray-700">
+        <button onclick="closeOutOfLimitModal()" class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200 font-medium">
+          Mengerti
         </button>
       </div>
     </div>
@@ -1406,11 +1465,17 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
           throw new Error('Invalid polling response: missing status field');
         }
 
-        // FixL Check for OUT_OF_LIMIT status
+        // Fix Check for OUT_OF_LIMIT status
         if (jobData.status === 'OUT_OF_LIMIT') {
           appState.stopGeneration();
           syncUIWithState(mode);
-          showToast('Credit HTML/CSS to Image telah habis. Silahkan upgrade plan atau tunggu bulan depan.', 'error');
+
+          // Dalam kondisi OUT_OF_LIMIT, tambahkan:
+          document.getElementById(`${mode}-progress-container`).classList.add('hidden');
+          document.getElementById(`${mode}-progress-bar`).style.width = '0%';
+          document.getElementById(`${mode}-progress-percent`).textContent = '0%';
+          
+          showOutOfLimitModal();
           return; // Penting buat stop proses
         }
 
@@ -1419,7 +1484,12 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
         if (jobData.status === 'COMPLETED' && jobData.slides && Array.isArray(jobData.slides) && jobData.slides.length > 0) {
           appState.stopGeneration();
           syncUIWithState(mode);
-          
+
+          // Dalam kondisi OUT_OF_LIMIT, tambahkan:
+          document.getElementById(`${mode}-progress-container`).classList.add('hidden');
+          document.getElementById(`${mode}-progress-bar`).style.width = '0%';
+          document.getElementById(`${mode}-progress-percent`).textContent = '0%';
+
           const newItem = {
             id: Date.now(),
             script: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
@@ -1450,6 +1520,12 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
         } else if (jobData.status === 'Failed' || jobData.status === 'FAILED') {
           appState.stopGeneration();
           syncUIWithState(mode);
+
+          // Dalam kondisi OUT_OF_LIMIT, tambahkan:
+          document.getElementById(`${mode}-progress-container`).classList.add('hidden');
+          document.getElementById(`${mode}-progress-bar`).style.width = '0%';
+          document.getElementById(`${mode}-progress-percent`).textContent = '0%';
+          
           const errorMsg = jobData.error || jobData.message || 'Unknown error';
           throw new Error('Generation failed: ' + errorMsg);
     
@@ -1473,6 +1549,10 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
         if (appState.consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
           appState.stopGeneration();
           syncUIWithState(mode);
+          // Dalam kondisi OUT_OF_LIMIT, tambahkan:
+          document.getElementById(`${mode}-progress-container`).classList.add('hidden');
+          document.getElementById(`${mode}-progress-bar`).style.width = '0%';
+          document.getElementById(`${mode}-progress-percent`).textContent = '0%';
           showToast('Multiple polling failures. Please check your connection and try again.', 'error');
           return;
         }
@@ -1484,6 +1564,36 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
         }
       }
     }
+
+    // Out of Limit Modal Functions
+    function showOutOfLimitModal() {
+      const modal = document.getElementById('out-of-limit-modal');
+      modal.classList.remove('hidden');
+      
+      // Add keyboard event listener
+      document.addEventListener('keydown', handleOutOfLimitModalKeyboard);
+    }
+    
+    function closeOutOfLimitModal() {
+      const modal = document.getElementById('out-of-limit-modal');
+      modal.classList.add('hidden');
+      
+      // Remove event listener
+      document.removeEventListener('keydown', handleOutOfLimitModalKeyboard);
+    }
+    
+    function handleOutOfLimitModalKeyboard(event) {
+      if (event.key === 'Escape') {
+        closeOutOfLimitModal();
+      }
+    }
+    
+    // Juga update event listener untuk klik di luar modal
+    document.getElementById('out-of-limit-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeOutOfLimitModal();
+      }
+    });
 
     // ==================== DISPLAY FOR GENERATED FUNCTION ====================
     // Fungsi untuk menampilkan hasil di Ide
