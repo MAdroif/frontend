@@ -609,15 +609,6 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
                     <option value="corporate">Corporate</option>
                   </select>
                 </div>
-                <div>
-                  <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary)">Voice Tone</label>
-                  <select id="skrip-voice-tone" class="input-field w-full px-4 py-2 rounded-lg text-sm">
-                    <option value="professional">Professional</option>
-                    <option value="casual">Casual</option>
-                    <option value="enthusiastic">Enthusiastic</option>
-                    <option value="formal">Formal</option>
-                  </select>
-                </div>
               </div>
               
               <!-- Generate Button -->
@@ -1369,8 +1360,7 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
       const payload = {
         pesan: skrip,
         creator_name: document.getElementById('skrip-creator-name').value.trim() || 'none',
-        template_style: document.getElementById('skrip-template').value,
-        tone_of_voice: document.getElementById('skrip-voice-tone').value
+        template_style: document.getElementById('skrip-template').value
       };
       
       await handleGenerate(payload, SKRIP_SUBMIT_WEBHOOK, SKRIP_STATUS_WEBHOOK, 'skrip');
