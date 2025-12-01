@@ -507,7 +507,7 @@
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                   <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary)">Creator name</label>
-                  <input type="text" id="ide-creator-name" placeholder="Your name" 
+                  <input type="text" id="ide-creator-name" placeholder="Isi nama atau biarkan kosong" 
                          class="input-field w-full px-4 py-2 rounded-lg text-sm">
                 </div>
                 <div>
@@ -1343,7 +1343,7 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
     
       const payload = {
         pesan: ide,
-        creator_name: document.getElementById('ide-creator-name').value || '',
+        creator_name: document.getElementById('ide-creator-name').value.trim() || 'none',
         template_style: document.getElementById('ide-template').value,
         tone_of_voice: document.getElementById('ide-voice-tone').value
       };
@@ -1368,7 +1368,7 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
     
       const payload = {
         pesan: skrip,
-        creator_name: document.getElementById('skrip-creator-name').value || '',
+        creator_name: document.getElementById('skrip-creator-name').value.trim() || 'none',
         template_style: document.getElementById('skrip-template').value,
         tone_of_voice: document.getElementById('skrip-voice-tone').value
       };
