@@ -1504,8 +1504,8 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
           document.getElementById(`${mode}-progress-percent`).textContent = '0%';
 
           if (appState.pollingInterval) {
-            clearInterval(appPollingInterval);
-            appState.pollinginterval = null;
+            clearInterval(appState.pollingInterval);
+            appState.pollingInterval = null;
           }
           showToast('Generate gagal mohon coba lagi dalam beberapa saat', 'error');
           return;
@@ -1516,7 +1516,7 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
           syncUIWithState(mode);
 
           document.getElementById(`${mode}-progress-container`).classList.add('hidden');
-          document.getElementById(`${mode}-progress-bar`).style.width = '0%";
+          document.getElementById(`${mode}-progress-bar`).style.width = '0%';
           document.getElementById(`${mode}-progress-percent`).textContent = '0%';
 
           if (appState.pollingInterval) {
@@ -1525,7 +1525,7 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
           }
 
           const errorMsg = jobData.error || jobData.message || 'Terjadi kesalahan';
-          showToast(`Generate gagal: ${errorMsg}. Mohon coba lagi dalam beberapa saa`, 'error');
+          showToast(`Generate gagal: ${errorMsg}. Mohon coba lagi dalam beberapa saat`, 'error');
           return;
         }
 
