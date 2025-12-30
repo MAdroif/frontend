@@ -1257,68 +1257,92 @@ function closeEditor() {
 
 function initFabricEditor(imageUrl) {
   const canvasEl = document.getElementById('editor-canvas');
+  const loadingEl = document.getElementById('canvas-loading');
   
-  // Set canvas size
-  canvasEl.width = 1200;
-  canvasEl.height = 630; // Standard social media size
+  // Show loading
+  if (loadingEl) loadingEl.classList.remove('hidden');
+  
+  // Set canvas size - lebih kecil untuk performa lebih baik
+  canvasEl.width = 800;
+  canvasEl.height = 450; // 16:9 aspect ratio
   
   // Initialize fabric canvas
   fabricCanvas = new fabric.Canvas('editor-canvas', {
     backgroundColor: '#ffffff',
-    preserveObjectStacking: true
+    preserveObjectStacking: true,
+    selection: true,
+    selectionColor: 'rgba(0, 188, 212, 0.3)',
+    selectionBorderColor: 'rgba(0, 188, 212, 0.8)',
+    selectionLineWidth: 1
   });
   
   // Load image
   fabric.Image.fromURL(imageUrl, function(img) {
     // Scale image to fit canvas
+    const maxWidth = canvasEl.width - 40; // Padding
+    const maxHeight = canvasEl.height - 40;
+    
     const scale = Math.min(
-      canvasEl.width / img.width,
-      canvasEl.height / img.height
+      maxWidth / img.width,
+      maxHeight / img.height
     );
     
+    // Jika gambar terlalu kecil, jangan perbesar
+    const finalScale = Math.min(scale, 1);
+    
     img.set({
-      scaleX: scale,
-      scaleY: scale,
-      left: (canvasEl.width - img.width * scale) / 2,
-      top: (canvasEl.height - img.height * scale) / 2,
-      selectable: false, // Background image tidak bisa dipilih
+      scaleX: finalScale,
+      scaleY: finalScale,
+      left: (canvasEl.width - img.width * finalScale) / 2,
+      top: (canvasEl.height - img.height * finalScale) / 2,
+      selectable: false,
       evented: false
     });
     
     fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
     
-    // Add some default tools
+    // Hide loading
+    if (loadingEl) loadingEl.classList.add('hidden');
+    
+    // Initialize editor tools
     initEditorTools();
+  }, {
+    crossOrigin: 'anonymous' // Untuk mencegah CORS issues
   });
 }
 
 function initEditorTools() {
-  const toolbar = document.querySelector('#editor-modal .w-16');
-  const propsPanel = document.querySelector('#editor-modal .w-64');
+  const toolbar = document.getElementById('editor-toolbar');
+  const propsContent = document.getElementById('properties-content');
   
   // Clear existing
   toolbar.innerHTML = '';
-  propsPanel.innerHTML = '<h4 class="font-semibold mb-3">Properties</h4>';
+  propsContent.innerHTML = '<p class="properties-placeholder">Select an object to edit</p>';
   
-  // Basic tools
   const tools = [
     {
       name: 'select',
       icon: 'M8 3a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 3zm0 5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 8zm0 5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2a.5.5 0 0 1 .5-.5zM10 3h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z',
-      action: () => fabricCanvas.isDrawingMode = false
+      action: () => {
+        fabricCanvas.isDrawingMode = false;
+        fabricCanvas.selection = true;
+      }
     },
     {
       name: 'text',
       icon: 'M12.5 15a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-1zm-11-1v-2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm11-4v-2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm-11-4v-2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5z',
       action: () => {
         const text = new fabric.Textbox('Edit text...', {
-          left: 100,
-          top: 100,
-          fontSize: 40,
-          fill: '#000000'
+          left: 50,
+          top: 50,
+          fontSize: 24,
+          fill: '#000000',
+          fontFamily: 'Arial',
+          width: 200
         });
         fabricCanvas.add(text);
         fabricCanvas.setActiveObject(text);
+        updatePropertiesPanel();
       }
     },
     {
@@ -1330,26 +1354,13 @@ function initEditorTools() {
           top: 100,
           width: 100,
           height: 50,
-          fill: 'transparent',
-          stroke: '#000000',
+          fill: 'rgba(0, 188, 212, 0.1)',
+          stroke: '#00BCD4',
           strokeWidth: 2
         });
         fabricCanvas.add(rect);
-      }
-    },
-    {
-      name: 'circle',
-      icon: 'M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z',
-      action: () => {
-        const circle = new fabric.Circle({
-          left: 100,
-          top: 100,
-          radius: 50,
-          fill: 'transparent',
-          stroke: '#000000',
-          strokeWidth: 2
-        });
-        fabricCanvas.add(circle);
+        fabricCanvas.setActiveObject(rect);
+        updatePropertiesPanel();
       }
     }
   ];
@@ -1357,12 +1368,24 @@ function initEditorTools() {
   // Add tools to toolbar
   tools.forEach(tool => {
     const btn = document.createElement('button');
-    btn.className = 'p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700';
+    btn.className = 'editor-tool-btn';
     btn.innerHTML = `<svg class="w-5 h-5" viewBox="0 0 16 16" fill="currentColor">${tool.icon}</svg>`;
     btn.title = tool.name;
-    btn.onclick = tool.action;
+    btn.onclick = () => {
+      // Remove active class from all buttons
+      document.querySelectorAll('.editor-tool-btn').forEach(b => b.classList.remove('active'));
+      // Add active class to clicked button
+      btn.classList.add('active');
+      // Execute tool action
+      tool.action();
+    };
     toolbar.appendChild(btn);
   });
+  
+  // Set first tool as active
+  if (toolbar.firstChild) {
+    toolbar.firstChild.classList.add('active');
+  }
 }
 
 async function saveEditedSlide() {
