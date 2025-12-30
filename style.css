@@ -308,40 +308,39 @@ body {
   background: #1f2937;
 }
 
-/* Editor Tools */
-.editor-tool-btn {
-  transition: all 0.2s ease;
-  border-radius: 6px;
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.editor-tool-btn:hover {
-  background: rgba(0, 188, 212, 0.1);
-  transform: scale(1.05);
-}
-
+/* Editor Tools Enhancement */
 .editor-tool-btn.active {
   background: var(--cyan-primary);
   color: white;
 }
 
-/* Properties Panel */
-.properties-panel input,
-.properties-panel select {
-  background: var(--content-bg);
-  border: 1px solid #E5E7EB;
-  border-radius: 6px;
-  padding: 6px 10px;
-  width: 100%;
-  margin-bottom: 10px;
+.editor-tool-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.dark .properties-panel input,
-.dark .properties-panel select {
-  border-color: #374151;
-  background: #1E293B;
-  color: #F1F5F9;
+/* Canvas Container */
+#editor-canvas {
+  border: 1px solid #e5e7eb;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  cursor: crosshair;
+}
+
+.dark #editor-canvas {
+  background: #1f2937;
+  border-color: #4b5563;
+}
+
+/* Properties Panel Inputs */
+.properties-input {
+  background: var(--content-bg);
+  border: 1px solid #e5e7eb;
+  color: var(--text-primary);
+}
+
+.dark .properties-input {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f1f5f9;
 }
