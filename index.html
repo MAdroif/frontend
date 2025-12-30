@@ -440,38 +440,46 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
     </div>
   </div>
   
-  <!-- Setelah Preview Modal -->
-  <div id="editor-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full h-full max-w-7xl mx-4 flex flex-col">
+  <!-- Editor Modal -->
+  <div id="editor-modal" class="editor-modal hidden">
+    <div class="editor-modal-container">
       <!-- Header -->
-      <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <h3 class="text-lg font-semibold">Edit Slide</h3>
-        <div class="flex gap-2">
-          <button id="save-edited-slide" class="btn-send px-4 py-2 rounded-lg text-sm">
+      <div class="editor-header">
+        <h3 class="editor-title">Edit Slide</h3>
+        <div class="editor-header-buttons">
+          <button id="save-edited-slide" class="btn-save">
             Save Changes
           </button>
-          <button onclick="closeEditor()" class="px-4 py-2 rounded-lg border text-sm">
+          <button onclick="closeEditor()" class="btn-cancel">
             Cancel
           </button>
         </div>
       </div>
       
       <!-- Main Editor Area -->
-      <div class="flex flex-1 overflow-hidden">
-        <!-- Toolbar -->
-        <div class="w-16 bg-gray-50 dark:bg-gray-900 border-r p-3 flex flex-col gap-3">
-          <!-- Tools akan diisi via JavaScript -->
+      <div class="editor-main-area">
+        <!-- Left Toolbar -->
+        <div class="editor-toolbar" id="editor-toolbar">
+          <!-- Tools will be populated by JavaScript -->
         </div>
         
         <!-- Canvas Area -->
-        <div class="flex-1 p-4 flex items-center justify-center">
-          <canvas id="editor-canvas" class="border rounded-lg shadow-lg"></canvas>
+        <div class="editor-canvas-area">
+          <div class="canvas-container">
+            <canvas id="editor-canvas" class="editor-canvas"></canvas>
+            <!-- Loading indicator -->
+            <div id="canvas-loading" class="canvas-loading hidden">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
         </div>
         
-        <!-- Properties Panel -->
-        <div class="w-64 bg-gray-50 dark:bg-gray-900 border-l p-4">
-          <h4 class="font-semibold mb-3">Properties</h4>
-          <!-- Properties controls akan diisi via JavaScript -->
+        <!-- Right Properties Panel -->
+        <div class="editor-properties">
+          <h4 class="properties-title">Properties</h4>
+          <div id="properties-content">
+            <p class="properties-placeholder">Select an object to edit</p>
+          </div>
         </div>
       </div>
     </div>
