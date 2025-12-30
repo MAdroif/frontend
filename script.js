@@ -1229,15 +1229,41 @@ function groupHistoryByDate(items) {
 
 // ==================== EDITOR FUNCTIONS ====================
 function openEditor(slides, index) {
+  console.log('Opening editor for slide', index, slides[index]);
+  
   currentEditSlidesArray = slides;
   currentEditSlideIndex = index;
   currentEditSlide = slides[index];
   
+  // Pastikan slide memiliki URL
+  if (!currentEditSlide) {
+    console.error('No slide data available');
+    return;
+  }
+  
+  const imageUrl = currentEditSlide.download_url || currentEditSlide.url;
+  if (!imageUrl) {
+    console.error('No image URL available');
+    showToast('Cannot edit slide: No image available', 'error');
+    return;
+  }
+  
+  console.log('Image URL:', imageUrl);
+  
   const modal = document.getElementById('editor-modal');
+  if (!modal) {
+    console.error('Editor modal not found');
+    return;
+  }
+  
+  // Tampilkan modal
   modal.classList.remove('hidden');
   
-  // Initialize fabric canvas
-  initFabricEditor(currentEditSlide.download_url || currentEditSlide.url);
+  // Tunggu sebentar agar modal benar-benar terlihat
+  setTimeout(() => {
+    // Initialize fabric canvas
+    initFabricEditor(imageUrl);
+  }, 100);
 }
 
 function closeEditor() {
@@ -1256,59 +1282,114 @@ function closeEditor() {
 }
 
 function initFabricEditor(imageUrl) {
+  console.log('Initializing fabric editor with image:', imageUrl);
+  
   const canvasEl = document.getElementById('editor-canvas');
   const loadingEl = document.getElementById('canvas-loading');
+  
+  if (!canvasEl) {
+    console.error('Canvas element not found!');
+    return;
+  }
   
   // Show loading
   if (loadingEl) loadingEl.classList.remove('hidden');
   
-  // Set canvas size - lebih kecil untuk performa lebih baik
+  // Set canvas size
   canvasEl.width = 800;
-  canvasEl.height = 450; // 16:9 aspect ratio
+  canvasEl.height = 450;
   
-  // Initialize fabric canvas
-  fabricCanvas = new fabric.Canvas('editor-canvas', {
-    backgroundColor: '#ffffff',
-    preserveObjectStacking: true,
-    selection: true,
-    selectionColor: 'rgba(0, 188, 212, 0.3)',
-    selectionBorderColor: 'rgba(0, 188, 212, 0.8)',
-    selectionLineWidth: 1
-  });
+  // Clear previous canvas if exists
+  if (fabricCanvas) {
+    fabricCanvas.dispose();
+  }
   
-  // Load image
-  fabric.Image.fromURL(imageUrl, function(img) {
-    // Scale image to fit canvas
-    const maxWidth = canvasEl.width - 40; // Padding
-    const maxHeight = canvasEl.height - 40;
-    
-    const scale = Math.min(
-      maxWidth / img.width,
-      maxHeight / img.height
-    );
-    
-    // Jika gambar terlalu kecil, jangan perbesar
-    const finalScale = Math.min(scale, 1);
-    
-    img.set({
-      scaleX: finalScale,
-      scaleY: finalScale,
-      left: (canvasEl.width - img.width * finalScale) / 2,
-      top: (canvasEl.height - img.height * finalScale) / 2,
-      selectable: false,
-      evented: false
+  try {
+    // Initialize fabric canvas
+    fabricCanvas = new fabric.Canvas('editor-canvas', {
+      backgroundColor: '#ffffff',
+      preserveObjectStacking: true,
+      selection: true,
+      selectionColor: 'rgba(0, 188, 212, 0.3)',
+      selectionBorderColor: 'rgba(0, 188, 212, 0.8)',
+      selectionLineWidth: 1
     });
     
-    fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
+    console.log('Fabric canvas initialized');
     
-    // Hide loading
+    // Load image dengan error handling
+    fabric.Image.fromURL(imageUrl, function(img) {
+      console.log('Image loaded successfully:', img);
+      
+      if (!img || !img.width || !img.height) {
+        console.error('Invalid image loaded');
+        if (loadingEl) loadingEl.classList.add('hidden');
+        return;
+      }
+      
+      // Scale image to fit canvas
+      const scale = Math.min(
+        canvasEl.width / img.width,
+        canvasEl.height / img.height
+      );
+      
+      console.log('Image dimensions:', img.width, 'x', img.height, 'Scale:', scale);
+      
+      img.set({
+        scaleX: scale,
+        scaleY: scale,
+        left: (canvasEl.width - img.width * scale) / 2,
+        top: (canvasEl.height - img.height * scale) / 2,
+        selectable: false,
+        evented: false,
+        originX: 'left',
+        originY: 'top'
+      });
+      
+      // Set background image
+      fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
+      
+      // Render canvas
+      fabricCanvas.renderAll();
+      
+      // Hide loading
+      if (loadingEl) loadingEl.classList.add('hidden');
+      
+      console.log('Canvas rendered with image');
+      
+      // Initialize editor tools
+      initEditorTools();
+      
+    }, {
+      crossOrigin: 'anonymous', // Untuk CORS
+      onerror: function(err) {
+        console.error('Error loading image:', err);
+        if (loadingEl) loadingEl.classList.add('hidden');
+        
+        // Show placeholder jika error
+        const placeholder = new fabric.Rect({
+          width: canvasEl.width,
+          height: canvasEl.height,
+          fill: '#f0f0f0'
+        });
+        fabricCanvas.add(placeholder);
+        
+        const errorText = new fabric.Text('Error loading image', {
+          left: canvasEl.width / 2,
+          top: canvasEl.height / 2,
+          originX: 'center',
+          originY: 'center',
+          fill: '#ff0000'
+        });
+        fabricCanvas.add(errorText);
+        fabricCanvas.renderAll();
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error initializing fabric canvas:', error);
     if (loadingEl) loadingEl.classList.add('hidden');
-    
-    // Initialize editor tools
-    initEditorTools();
-  }, {
-    crossOrigin: 'anonymous' // Untuk mencegah CORS issues
-  });
+  }
 }
 
 function initEditorTools() {
