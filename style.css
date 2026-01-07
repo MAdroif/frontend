@@ -281,65 +281,425 @@ body {
   }
 }
 
-/* ========== EDIT MODAL BUTTONS ========== */
-#edit-modal button {
-    color: var(--text-primary);
-    transition: all 0.2s ease;
+/* edit-modal.css */
+
+/* ========== EDIT MODAL STRUCTURE ========== */
+.edit-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
 }
 
-/* Tombol dengan border */
-#edit-modal button.border {
-    border-color: var(--text-secondary) !important;
-    color: var(--text-primary) !important;
-    background-color: var(--content-bg) !important;
+.edit-modal.hidden {
+    display: none;
 }
 
-#edit-modal button.border:hover {
-    border-color: var(--cyan-primary) !important;
-    background-color: rgba(139, 92, 246, 0.1) !important;
+.edit-modal-container {
+    position: relative;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 91.666667%;
+    max-width: 72rem;
+    height: 83.333333%;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Tombol Add Elements */
-#edit-modal .flex.flex-col.items-center {
-    color: var(--text-primary) !important;
+.dark .edit-modal-container {
+    background: #1e293b;
 }
 
-#edit-modal .flex.flex-col.items-center span {
-    color: var(--text-primary) !important;
+/* ========== EDIT MODAL HEADER ========== */
+.edit-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
 }
 
-/* Range slider */
-#edit-modal input[type="range"] {
-    accent-color: var(--cyan-primary);
+.dark .edit-modal-header {
+    border-bottom-color: #374151;
 }
 
-/* Color picker */
-#edit-modal input[type="color"] {
+.edit-modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.75rem;
+}
+
+.edit-modal-header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* ========== EDIT MODAL MAIN CONTENT ========== */
+.edit-modal-content {
+    display: flex;
+    flex: 1 1 0%;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* ========== CANVAS PANEL ========== */
+.edit-canvas-panel {
+    flex: 1 1 0%;
+    padding: 1rem;
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+}
+
+.edit-canvas-container {
+    height: 100%;
+    border: 2px dashed #d1d5db;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.dark .edit-canvas-container {
+    border-color: #4b5563;
+}
+
+#edit-canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* ========== TOOLBAR PANEL ========== */
+.edit-toolbar-panel {
+    width: 20rem;
+    min-width: 20rem;
+    border-left: 1px solid #e5e7eb;
+    padding: 1rem;
+    overflow-y: auto;
+    background: white;
+    flex-shrink: 0;
+}
+
+.dark .edit-toolbar-panel {
+    background: #1e293b;
+    border-left-color: #374151;
+}
+
+/* ========== TOOLBAR SECTIONS ========== */
+.toolbar-section {
+    margin-bottom: 1.5rem;
+}
+
+.toolbar-section-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    margin-bottom: 0.75rem;
+    color: #1f2937;
+}
+
+.dark .toolbar-section-title {
+    color: #f3f4f6;
+}
+
+/* ========== SLIDER CONTROLS ========== */
+.slider-container {
+    margin-bottom: 0.75rem;
+}
+
+.slider-label {
+    display: block;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    margin-bottom: 0.25rem;
+    color: #374151;
+}
+
+.dark .slider-label {
+    color: #d1d5db;
+}
+
+.slider-input {
+    width: 100%;
+    height: 0.5rem;
+    background: #e5e7eb;
+    border-radius: 0.5rem;
+    appearance: none;
     cursor: pointer;
-    border: 1px solid var(--text-secondary);
-    border-radius: 4px;
 }
 
-/* Select dropdown */
-#edit-modal select {
-    color: var(--text-primary) !important;
-    background-color: var(--content-bg) !important;
+.dark .slider-input {
+    background: #4b5563;
 }
 
-/* Text di dalam tombol layout */
-#edit-modal .h-16.bg-gray-100 span {
-    color: var(--text-primary) !important;
+.slider-input::-webkit-slider-thumb {
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 9999px;
+    background: #0f172a;
+    cursor: pointer;
 }
 
-.dark #edit-modal .h-16.bg-gray-100 {
-    background-color: #374151 !important;
+.dark .slider-input::-webkit-slider-thumb {
+    background: #8b5cf6;
 }
 
-.dark #edit-modal .h-16.bg-gray-100 span {
-    color: #f3f4f6 !important;
+.slider-values {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #6b7280;
 }
 
-/* Objects list text */
-#edit-modal #objects-list span {
-    color: var(--text-primary) !important;
+/* ========== SELECT & COLOR INPUTS ========== */
+.select-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #1f2937;
+    font-size: 0.875rem;
+}
+
+.dark .select-input {
+    background: #1e293b;
+    border-color: #4b5563;
+    color: #f3f4f6;
+}
+
+.color-input {
+    width: 100%;
+    height: 2rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    border: 1px solid #d1d5db;
+}
+
+/* ========== LAYOUT TEMPLATES ========== */
+.layout-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.layout-button {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dark .layout-button {
+    background: #1e293b;
+    border-color: #4b5563;
+}
+
+.layout-button:hover {
+    border-color: #3b82f6;
+}
+
+.layout-preview {
+    height: 4rem;
+    background: #f3f4f6;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dark .layout-preview {
+    background: #374151;
+}
+
+.layout-preview span {
+    font-size: 0.75rem;
+    color: #374151;
+}
+
+.dark .layout-preview span {
+    color: #f3f4f6;
+}
+
+/* ========== OBJECTS LIST ========== */
+.objects-list {
+    max-height: 10rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.object-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dark .object-item {
+    border-color: #4b5563;
+    background: #1e293b;
+}
+
+.object-item:hover {
+    background: #f9fafb;
+}
+
+.dark .object-item:hover {
+    background: #374151;
+}
+
+.object-item.active {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.dark .object-item.active {
+    background: #1e3a8a;
+}
+
+.object-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.object-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+}
+
+.object-name {
+    font-size: 0.75rem;
+    color: #1f2937;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 8rem;
+}
+
+.dark .object-name {
+    color: #f3f4f6;
+}
+
+.object-type {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.dark .object-type {
+    color: #9ca3af;
+}
+
+/* ========== ADD ELEMENTS GRID ========== */
+.elements-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.element-button {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dark .element-button {
+    background: #1e293b;
+    border-color: #4b5563;
+}
+
+.element-button:hover {
+    background: #f9fafb;
+}
+
+.dark .element-button:hover {
+    background: #374151;
+}
+
+.element-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.element-label {
+    font-size: 0.75rem;
+    color: #1f2937;
+}
+
+.dark .element-label {
+    color: #f3f4f6;
+}
+
+/* ========== DELETE BUTTON ========== */
+.delete-button {
+    width: 100%;
+    padding: 0.5rem;
+    background: #dc2626;
+    color: white;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.delete-button:hover {
+    background: #b91c1c;
+}
+
+/* ========== BUTTON STYLES ========== */
+.btn-save {
+    padding: 0.5rem 1rem;
+    background: #10b981;
+    color: white;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-save:hover {
+    background: #059669;
+}
+
+.btn-close {
+    padding: 0.25rem;
+    border-radius: 9999px;
+    color: #6b7280;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-close:hover {
+    color: #374151;
+    background: #f3f4f6;
+}
+
+.dark .btn-close:hover {
+    color: #d1d5db;
+    background: #374151;
 }
