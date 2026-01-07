@@ -435,18 +435,18 @@ function updateObjectsList() {
     const name = obj.type === 'textbox' ? (obj.text || 'Text') : type;
     
     html += `
-      <div class="flex items-center justify-between p-2 border rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${obj === fabricCanvas.getActiveObject() ? 'border-blue-500 bg-blue-50 dark:bg-blue-900' : ''}"
-           onclick="selectObject(${index})">
-        <div class="flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            ${getObjectIcon(obj.type)}
-          </svg>
-          <span class="text-xs truncate text-gray-800 dark:text-gray-200">
-            ${name.substring(0, 15)}${name.length > 15 ? '...' : ''}
-          </span>
+        <div class="object-item ${obj === fabricCanvas.getActiveObject() ? 'active' : ''}"
+             onclick="selectObject(${index})">
+            <div class="object-info">
+                <svg class="object-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    ${getObjectIcon(obj.type)}
+                </svg>
+                <span class="object-name">
+                    ${name.substring(0, 15)}${name.length > 15 ? '...' : ''}
+                </span>
+            </div>
+            <span class="object-type">${type}</span>
         </div>
-        <span class="text-xs text-gray-600 dark:text-gray-400">${type}</span>
-      </div>
     `;
   });
   
