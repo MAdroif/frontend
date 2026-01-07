@@ -511,10 +511,10 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
         <div class="w-80 border-l border-gray-200 dark:border-gray-700 p-4 overflow-y-auto">
           <!-- Text Properties -->
           <div class="mb-6">
-            <h4 class="font-semibold mb-3 text-sm">Text Properties</h4>
+            <h4 class="font-semibold mb-3 text-sm text-gray-800 dark:text-gray-200">Text Properties</h4> <!-- edited -->
             <div class="space-y-3">
               <div>
-                <label class="block text-xs mb-1">Font Size</label>
+                <label class="block text-xs mb-1 text-gray-700 dark:text-gray-300">Font Size</label> <!-- edited -->
                 <input type="range" id="font-size" min="10" max="72" value="24" 
                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                        oninput="updateTextProperty('fontSize', this.value)">
@@ -559,10 +559,12 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
           <div class="mb-6">
             <h4 class="font-semibold mb-3 text-sm">Layout Templates</h4>
             <div class="grid grid-cols-2 gap-2">
-              <button onclick="applyLayout('title-center')" class="p-2 border rounded-lg hover:border-blue-500">
-                <div class="h-16 bg-gray-100 rounded flex items-center justify-center">
-                  <span class="text-xs">Title Center</span>
-                </div>
+              <!-- edited -->
+              <button onclick="applyLayout('title-center')" 
+                      class="p-2 border rounded-lg hover:border-blue-500 text-gray-800 dark:text-gray-200">
+                  <div class="h-16 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
+                      <span class="text-xs text-gray-800 dark:text-gray-200">Title Center</span>
+                  </div>
               </button>
               <button onclick="applyLayout('title-left')" class="p-2 border rounded-lg hover:border-blue-500">
                 <div class="h-16 bg-gray-100 rounded flex items-start justify-start p-2">
@@ -596,11 +598,13 @@ Dalam bahasa indonesia artinya 'Bakar jembatannya' yang maknanya adalah hilangka
           <div class="mb-6">
             <h4 class="font-semibold mb-3 text-sm">Add Elements</h4>
             <div class="grid grid-cols-2 gap-2">
-              <button onclick="addTextElement()" class="p-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center">
-                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v6m-6 4h12m-6 6h6"/>
-                </svg>
-                <span class="text-xs">Add Text</span>
+              <!-- edited -->
+              <button onclick="addTextElement()" 
+                      class="p-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center text-gray-800 dark:text-gray-200">
+                  <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <!-- ... -->
+                  </svg>
+                  <span class="text-xs text-gray-800 dark:text-gray-200">Add Text</span>
               </button>
               <button onclick="addImageElement()" class="p-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center">
                 <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
