@@ -441,9 +441,11 @@ function updateObjectsList() {
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             ${getObjectIcon(obj.type)}
           </svg>
-          <span class="text-xs truncate">${name.substring(0, 15)}${name.length > 15 ? '...' : ''}</span>
+          <span class="text-xs truncate text-gray-800 dark:text-gray-200">
+            ${name.substring(0, 15)}${name.length > 15 ? '...' : ''}
+          </span>
         </div>
-        <span class="text-xs text-gray-500">${type}</span>
+        <span class="text-xs text-gray-600 dark:text-gray-400">${type}</span>
       </div>
     `;
   });
