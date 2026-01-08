@@ -311,7 +311,8 @@ body {
 }
 
 .dark .edit-modal-container {
-    background: #1e293b;
+    /* background: #1e293b; */
+    background: red;
 }
 
 /* ========== EDIT MODAL HEADER ========== */
