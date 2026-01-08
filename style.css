@@ -303,9 +303,9 @@ body {
     background: white;
     border-radius: 0.75rem;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    width: 100%;
-    /* max-width: 72rem; */
-    height: 100%;
+    width: 98%;
+    max-width: 72rem;
+    height: 98%;
     display: flex;
     flex-direction: column;
 }
